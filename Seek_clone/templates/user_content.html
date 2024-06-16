@@ -1,0 +1,281 @@
+{% extends "user_base.html" %}
+{% block title %} Course {{ course_name }} {% endblock %}
+{% block content %}
+<style>
+    .stock-out {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-size: 24px;
+        color: red;
+        text-align: center;
+    }
+    .mcq-option {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .mcq-option:hover {
+        background-color: #f1f1f1;
+    }
+    .mcq-option input {
+        margin-right: 10px;
+    }
+    .list-group-item.active {
+        background-color: blue !important;
+        color: white !important;
+        border-color: blue !important;
+    }
+    .list-group-item:hover {
+        background-color: lightblue;
+        color: black;
+    }
+    .content-container {
+        background-color: white;
+        border: 1px solid #ddd;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<div class="row">
+    <div class="col-sm-6 col-lg-8">{{ usr_usrname }}</div>
+</div>
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group">
+            {% if content %}
+                {% for item in content %}
+                    <a href="?selected={{ item.content_id }}" class="list-group-item list-group-item-action {% if selected_content and item.content_id == selected_content.content_id %}active{% endif %}">
+                        {{ item.content_name }}
+                    </a>
+                {% endfor %}
+                {% for mcq in mcq_assignments %}
+                    <a href="?selected_mcq={{ mcq.id }}" class="list-group-item list-group-item-action {% if selected_mcq and mcq.id == selected_mcq.id %}active{% endif %}">
+                        {{ mcq.content_name }}
+                    </a>
+                {% endfor %}
+                {% for coding_q in coding_questions %}
+                    <a href="?selected_coding={{ coding_q.question_id }}" class="list-group-item list-group-item-action {% if selected_coding and coding_q.id == selected_coding.id %}active{% endif %}">
+                        {{ coding_q.content_name }}
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="list-group-item mb-3" style="border: 1px solid #ddd;">
+                    No content available
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-9">
+        {% if selected_content %}
+            <div class="content-container">
+                <div class="d-flex w-100 justify-content-between mb-3" style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                    <h5 class="mb-1" style="border: 1px solid #ccc; padding: 5px 10px; background-color: #f8f8f8;">{{ selected_content.content_name }}</h5>
+                </div>
+                <div class="d-flex justify-content-center mb-3">
+                    <div style="position: relative; width: 100%; max-width: 1000px; padding-bottom: 40%; height: 0; overflow: hidden; border: 1px solid #ccc;">
+                        <iframe id="videoFrame" data-content-id="{{ selected_content.content_id }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/{{ selected_content.content_link }}" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <p class="mb-1" style="border-top: 1px solid #ccc; padding-top: 10px;">{{ selected_content.content_assignment }}</p>
+                <form id="promptForm">
+                    <div class="form-group">
+                        <label for="prompt">Write your Prompt here:</label>
+                        <textarea class="form-control" id="prompt" name="prompt" rows="3"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="sendPrompt()">Send</button>
+                </form>
+            </div>
+            <div class="content-container mt-3">
+                <h5>Prompt Answer:</h5>
+                <textarea class="form-control" id="answer" name="answer" rows="3" readonly></textarea>
+            </div>
+        {% elif selected_mcq %}
+            <div class="content-container">
+                <div class="d-flex w-100 justify-content-between mb-3" style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                    <h5 class="mb-1" style="border: 1px solid #ccc; padding: 5px 10px; background-color: #f8f8f8;">{{ selected_mcq.question }}</h5>
+                </div>
+                <div class="mb-3">
+                    <p>Options:</p>
+                    <ul id="mcq-options" data-correct-answer="{{ selected_mcq.correct_answer }}">
+                        <li class="mcq-option" data-answer="A">
+                            <input type="radio" name="mcq" value="A">
+                            <label>{{ selected_mcq.option_a }}</label>
+                        </li>
+                        <li class="mcq-option" data-answer="B">
+                            <input type="radio" name="mcq" value="B">
+                            <label>{{ selected_mcq.option_b }}</label>
+                        </li>
+                        <li class="mcq-option" data-answer="C">
+                            <input type="radio" name="mcq" value="C">
+                            <label>{{ selected_mcq.option_c }}</label>
+                        </li>
+                        <li class="mcq-option" data-answer="D">
+                            <input type="radio" name="mcq" value="D">
+                            <label>{{ selected_mcq.option_d }}</label>
+                        </li>
+                    </ul>
+                </div>
+                <p id="feedback" style="display: none;"><strong>Feedback:</strong> <span id="feedback-text"></span></p>
+                <button type="button" class="btn btn-primary" onclick="sendQuestionsToAPI()">Send Questions to API</button>
+            </div>
+        {% elif selected_coding %}
+            <div class="content-container">
+                <h5>Coding Question:</h5>
+                <p>{{ selected_coding.coding_question }}</p>
+                <iframe src="https://trinket.io/embed/python/a57e6db383" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Send Coding Question to API</button>
+                <div class="mt-3">
+                    <h5>API Response:</h5>
+                    <textarea class="form-control" id="api-coding-response" name="api-coding-response" rows="5" readonly></textarea>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-warning" role="alert">
+                No content selected. Please select a content from the list.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var correctAnswer = document.getElementById('mcq-options').dataset.correctAnswer.trim();
+
+        document.querySelectorAll('.mcq-option').forEach(function(option) {
+            option.addEventListener('click', function() {
+                var selectedAnswer = this.getAttribute('data-answer').trim();
+                var feedbackText = '';
+
+                // Ensure comparison as strings
+                if (selectedAnswer === correctAnswer) {
+                    feedbackText = 'Correct!';
+                } else {
+                    feedbackText = 'Incorrect! The correct answer is ' + correctAnswer;
+                }
+
+                document.getElementById('feedback-text').textContent = feedbackText;
+                document.getElementById('feedback').style.display = 'block';
+            });
+        });
+    });
+
+    function sendPrompt() {
+        // Get the prompt from the textarea
+        var promptText = document.getElementById("prompt").value;
+        
+        // Get the content ID from the video frame
+        var contentId = document.getElementById("videoFrame").dataset.contentId;
+
+        // Create a new XMLHttpRequest object
+        var xhr = new XMLHttpRequest();
+
+        // Configure the request
+        xhr.open("POST", "/process_prompt", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        // Define what happens on successful data submission
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                // Update the answer text box with the response from the server
+                document.getElementById("answer").value = xhr.responseText;
+                // Alert the user
+                alert("Prompt submitted successfully.");
+            } else if (xhr.readyState === XMLHttpRequest.DONE) {
+                alert("Failed to submit prompt: " + xhr.responseText);
+            }
+        };
+
+        // Send the request with the prompt and content ID
+        xhr.send("prompt=" + encodeURIComponent(promptText) + "&content_id=" + contentId);
+    }
+
+    function sendQuestionsToAPI() {
+        // Get the selected MCQ data
+        var selectedMCQ = {
+            question: document.querySelector('.list-group-item.active').textContent.trim(),
+            options: []
+        };
+
+        // Get all the MCQ options
+        var mcqOptions = document.querySelectorAll('.mcq-option');
+
+        // Loop through each option to collect the data
+        mcqOptions.forEach(function(option) {
+            var optionData = {
+                answer: option.getAttribute('data-answer').trim(),
+                optionText: option.querySelector('label').textContent.trim()
+            };
+            selectedMCQ.options.push(optionData);
+        });
+
+        // Prepare the data to send
+        var requestData = JSON.stringify(selectedMCQ);
+
+        // Create a new XMLHttpRequest object
+        var xhr = new XMLHttpRequest();
+
+        // Configure the request
+        xhr.open("POST", "your_external_api_endpoint_here", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        // Define what happens on successful data submission
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                // Handle success
+                var response = JSON.parse(xhr.responseText);
+                var outputDiv = document.getElementById('api-output');
+                outputDiv.innerHTML = '<h5>API Response:</h5><p>' + response + '</p>';
+                alert("Questions sent successfully!");
+            } else if (xhr.readyState === XMLHttpRequest.DONE) {
+                // Handle error
+                alert("Failed to send questions: " + xhr.responseText);
+            }
+        };
+
+        // Send the request with the MCQ data
+        xhr.send(requestData);
+    }
+
+    function sendCodingQuestionToAPI() {
+        // Get the coding question data
+        var codingQuestion = {
+            question: document.querySelector('.list-group-item.active').textContent.trim()
+        };
+
+        // Prepare the data to send
+        var requestData = JSON.stringify(codingQuestion);
+
+        // Create a new XMLHttpRequest object
+        var xhr = new XMLHttpRequest();
+
+        // Configure the request
+        xhr.open("POST", "your_external_api_endpoint_here", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        // Define what happens on successful data submission
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                // Handle success
+                var response = JSON.parse(xhr.responseText);
+                document.getElementById('api-coding-response').value = response;
+                alert("Coding question sent successfully!");
+            } else if (xhr.readyState === XMLHttpRequest.DONE) {
+                // Handle error
+                alert("Failed to send coding question: " + xhr.responseText);
+            }
+        };
+
+        // Send the request with the coding question data
+        xhr.send(requestData);
+    }
+</script>
+{% endblock %}

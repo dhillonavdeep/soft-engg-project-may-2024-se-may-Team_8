@@ -1,0 +1,36 @@
+{% extends "admin_base.html" %}
+{% block title %}Add course{% endblock %}
+{% block usrname %}{{ admin_username }}{% endblock %}
+{% block content %}
+<br><br>
+<form action="/admin/create_course" method="POST" enctype="multipart/form-data">
+  <div class="row">
+    <div class="col-sm-5">
+      <div class="form-outline">
+        <label class="form-label" for="cname"><b>Course Name</b></label>
+        <input placeholder="Course Name" type="text" id="cname" class="form-control" name="cat_name" required />
+      </div>
+    </div>
+  </div>
+  <br><br>
+  <div class="col-sm-5">
+    <div class="form-outline">
+      <label class="form-label" for="cdetails"><b>Course Details</b></label>
+      <input placeholder="Course Details" type="text" id="cdetails" class="form-control" name="cat_details" required />
+    </div>
+  </div>
+  <br><br>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-outline">
+        <label class="form-label" for="cimg"><b>Course Image</b></label>
+        <input type="file" id="cimg" class="form-control" name="cat_img" required />
+      </div>
+    </div>
+  </div>
+  <br><br>
+  <div class="pt-1 mb-4">
+    <button class="btn btn-lg btn-primary" type="submit">Save the course details</button>
+  </div>
+</form>
+{% endblock %}

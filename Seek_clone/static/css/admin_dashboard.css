@@ -1,0 +1,17 @@
+
+
+.card-img-top {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.position-relative {
+    overflow: hidden;
+}
+
+.course-index {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0.5rem 1rem;
+    border-radius: 50%;
+}

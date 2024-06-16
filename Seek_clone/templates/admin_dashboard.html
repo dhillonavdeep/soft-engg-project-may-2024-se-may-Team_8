@@ -1,0 +1,46 @@
+{% extends "admin_base.html" %}
+{% block title %}My Dashboard{% endblock %}
+{% block usrname %}{{ admin_username }}{% endblock%}
+{% block content %}
+{% if cat_det|length > 0 %}
+<link rel="stylesheet" href="\static\css\admin_dashboard.css">
+<div class="row">
+    {% for course in cat_det %}
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="card mb-4" style="border: 1px solid #ddd;">
+            <div class="position-relative">
+                <span class="course-index position-absolute top-0 end-0 m-2">{{ loop.index }}</span>
+                <img src="/static/images/{{ course['course_image'] }}" class="card-img-top" alt="{{ course['course_name'] }}">
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ course['course_name'] }}</h5>
+                <p class="card-text">{{ course['course_details'] }}</p>
+                <p class="card-text">{{ course['course_quantity'] }}</p>
+                <div class="d-flex justify-content-between">
+                    <a href="/admin/{{ course['course_id'] }}/update" class="btn btn-warning" type="submit">Update</a>
+                    <a href="/admin/{{ course['course_id'] }}/delete" class="btn btn-danger" type="submit">Delete</a>
+                </div>
+                <div>
+                    <a href="/admin/{{ course['course_id'] }}/contents" class="btn btn-info mt-2" type="submit">Available content</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="row">
+    <div class="col-6 col-sm-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">No course created yet</h5>
+                <p class="card-text">Click below button to create a course</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<div class="mt-4">
+    <a href="/admin/create_course" class="btn btn-primary" type="submit">Add Course</a>
+</div>
+{% endblock %}

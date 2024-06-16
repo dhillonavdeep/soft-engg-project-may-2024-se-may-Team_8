@@ -1,0 +1,54 @@
+/* adlogin.css */
+
+body {
+    background-color: #f2f2f2;
+  }
+  
+  .container-fluid {
+    height: 100vh;
+  }
+  
+  .col-sm-6.text-black {
+    background-color: #fff;
+    padding: 5rem;
+  }
+  
+  h3 {
+    letter-spacing: 1px;
+  }
+  
+  .form-outline {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    font-weight: bold;
+  }
+  
+  .form-control-lg {
+    border-radius: 10px;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0069d9;
+  }
+  
+  .link-info {
+    color: #17a2b8;
+  }
+  
+  .col-sm-6.px-0.d-none.d-sm-block {
+    background-image: url("static\images\user.jpg");
+    background-size: cover;
+    background-position: left;
+  }
+
+ 
+ 
+
+  

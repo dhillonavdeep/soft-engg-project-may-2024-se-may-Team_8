@@ -1,0 +1,147 @@
+{% extends "admin_base.html" %}
+{% block title %}Update Content{% endblock %}
+{% block usrname %}{{ admin_username }}{% endblock %}
+{% block content %}
+<br><br>
+<form action="/admin/{{ cat_id }}/{{ content_detail.content_id }}/update" method="POST" enctype="multipart/form-data">
+  <div class="row">
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="cname">Content Name</label>
+        <input type="text" id="cname" class="form-control" name="p_name" value="{{ content_detail.content_name }}" required />
+      </div>
+    </div>
+  </div>
+  <br><br>
+
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="radio" name="content_type" id="videoOption" value="video" {% if content_detail.content_type == 'video' %}checked{% endif %}>
+    <label class="form-check-label" for="videoOption">Video Link</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="radio" name="content_type" id="assignmentOption" value="assignment" {% if content_detail.content_type == 'assignment' %}checked{% endif %}>
+    <label class="form-check-label" for="assignmentOption">Assignment</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="radio" name="content_type" id="programmingOption" value="programming" {% if content_detail.content_type == 'programming' %}checked{% endif %}>
+    <label class="form-check-label" for="programmingOption">Programming Question</label>
+  </div>
+
+  <div id="videoForm" {% if content_detail.content_type != 'video' %}style="display: none;"{% endif %}>
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="p_link"><b>Video link</b></label>
+        <input type="text" placeholder="Video link" id="p_link" class="form-control" name="p_link" value="{{ content_detail.content_link }}" />
+      </div>
+    </div>
+    <br><br>
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="p_transcript"><b>Transcript</b></label>
+        <input type="text" placeholder="Transcript" id="p_transcript" class="form-control" name="p_transcript" value="{{ content_detail.content_transcript }}" />
+      </div>
+    </div>
+    <br><br>
+  </div>
+
+  <div id="assignmentForm" {% if content_detail.content_type != 'assignment' %}style="display: none;"{% endif %}>
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="assignmentQuestion"><b>Question</b></label>
+        <input type="text" placeholder="Question" id="assignmentQuestion" class="form-control" name="assignment_question" value="{{ content_detail.assignment_question }}" />
+      </div>
+    </div>
+    <br><br>
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="optionA"><b>Option A</b></label>
+        <input type="text" placeholder="Option A" id="optionA" class="form-control" name="option_a" value="{{ content_detail.option_a }}" />
+      </div>
+    </div>
+
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="optionB"><b>Option B</b></label>
+        <input type="text" placeholder="Option B" id="optionB" class="form-control" name="option_b" value="{{ content_detail.option_b }}" />
+      </div>
+    </div>
+
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="optionC"><b>Option C</b></label>
+        <input type="text" placeholder="Option C" id="optionC" class="form-control" name="option_c" value="{{ content_detail.option_c }}" />
+      </div>
+    </div>
+
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="optionD"><b>Option D</b></label>
+        <input type="text" placeholder="Option D" id="optionD" class="form-control" name="option_d" value="{{ content_detail.option_d }}" />
+      </div>
+    </div>
+    <br><br>
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="correctAnswer"><b>Correct Answer</b></label>
+        <input type="text" placeholder="Correct Answer" id="correctAnswer" class="form-control" name="correct_answer" value="{{ content_detail.correct_answer }}" />
+      </div>
+    </div>
+    <br><br>
+  </div>
+
+  <div id="programmingForm" {% if content_detail.content_type != 'programming' %}style="display: none;"{% endif %}>
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="programmingQuestion"><b>Programming Question</b></label>
+        <textarea id="programmingQuestion" placeholder="Programming Question" class="form-control" name="programming_question">{{ content_detail.programming_question }}</textarea>
+      </div>
+    </div>
+    <br><br>
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="Name"><b>Name</b></label>
+        <textarea id="Name" placeholder="Name" class="form-control" name="Name">{{ content_detail.name }}</textarea>
+      </div>
+    </div>
+    <br><br>
+  </div>
+
+  <div class="pt-1 mb-4">
+    <button class="btn btn-lg btn-primary mt-2" type="submit">Save the content details</button>
+  </div>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var videoOption = document.getElementById('videoOption');
+    var assignmentOption = document.getElementById('assignmentOption');
+    var programmingOption = document.getElementById('programmingOption');
+    var videoForm = document.getElementById('videoForm');
+    var assignmentForm = document.getElementById('assignmentForm');
+    var programmingForm = document.getElementById('programmingForm');
+
+    function toggleForm() {
+      if (videoOption.checked) {
+        videoForm.style.display = 'block';
+        assignmentForm.style.display = 'none';
+        programmingForm.style.display = 'none';
+      } else if (assignmentOption.checked) {
+        videoForm.style.display = 'none';
+        assignmentForm.style.display = 'block';
+        programmingForm.style.display = 'none';
+      } else if (programmingOption.checked) {
+        videoForm.style.display = 'none';
+        assignmentForm.style.display = 'none';
+        programmingForm.style.display = 'block';
+      }
+    }
+
+    videoOption.addEventListener('change', toggleForm);
+    assignmentOption.addEventListener('change', toggleForm);
+    programmingOption.addEventListener('change', toggleForm);
+
+    toggleForm();
+  });
+</script>
+
+{% endblock %}

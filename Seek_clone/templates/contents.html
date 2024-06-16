@@ -1,0 +1,90 @@
+{% extends "admin_base.html" %}
+{% block title %}Contents{% endblock %}
+{% block usrname %}{{ admin_username }}{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row">
+    <div class="col-md-3" style="border-right: 1px solid #ddd;">
+      <div class="list-group">
+        {% for content in content_list %}
+        <a href="?selected={{ content.content_id }}" class="list-group-item list-group-item-action {% if selected_content and content.content_id == selected_content.content_id %}active{% endif %}">
+          {{ content.content_name }}
+        </a>
+        {% endfor %}
+        {% for mcq in mcq_assignments %}
+        <a href="?selected_mcq={{ mcq.id }}" class="list-group-item list-group-item-action {% if mcq_selected_content and mcq.id == mcq_selected_content.id %}active{% endif %}">
+          {{ mcq.content_name }}
+        </a>
+        {% endfor %}
+        {% for coding_q in coding_questions %}
+        <a href="?selected_coding={{ coding_q.question_id }}" class="list-group-item list-group-item-action {% if selected_coding and coding_q.question_id == selected_coding.question_id %}active{% endif %}">
+          {{ coding_q.content_name }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-md-9">
+      {% if selected_content %}
+      <div class="list-group-item mb-3" style="border: 1px solid #ddd; padding: 20px; background-color: #ffffff;">
+        <div class="d-flex w-100 justify-content-between mb-3" style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+          <h5 class="mb-1" style="padding: 5px 10px; background-color: #f8f8f8; border-radius: 5px;">{{ selected_content.content_name }}</h5>
+        </div>
+        <div class="d-flex justify-content-center mb-3">
+          {% if selected_content.content_link %}
+          <div style="position: relative; width: 100%; max-width: 1000px; padding-bottom: 56.25%; height: 0; overflow: hidden; border: 1px solid #ccc; border-radius: 5px;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/{{ selected_content.content_link }}" frameborder="0" allowfullscreen></iframe>
+          </div>
+          {% endif %}
+        </div>
+        <p class="mb-1" style="border-top: 1px solid #ccc; padding-top: 10px;">{{ selected_content.content_assignment }}</p>
+        <p>Lecture Transcript</p>
+        <p class="mb-1">{{ selected_content.content_transcript }}</p>
+        <div class="d-flex justify-content-end mt-2">
+          <a href="/admin/{{ cat_id }}/{{ selected_content.content_id }}/update" class="btn btn-warning mr-2" type="submit">Update content</a>
+          <form action="/admin/{{ cat_id }}/{{ selected_content.content_id }}/delete" method="POST">
+            <button class="btn btn-danger" type="submit">Delete content</button>
+          </form>
+        </div>
+      </div>
+      {% elif mcq_selected_content %}
+      <div class="list-group-item mb-3" style="border: 1px solid #ddd; padding: 20px; background-color: #ffffff;">
+        <div class="d-flex w-100 justify-content-between mb-3" style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+          <h5 class="mb-1" style="padding: 5px 10px; background-color: #f8f8f8; border-radius: 5px;">{{ mcq_selected_content.question }}</h5>
+        </div>
+        <div class="mb-3">
+          <p>Options:</p>
+          <ul>
+            <li>{{ mcq_selected_content.option_a }}</li>
+            <li>{{ mcq_selected_content.option_b }}</li>
+            <li>{{ mcq_selected_content.option_c }}</li>
+            <li>{{ mcq_selected_content.option_d }}</li>
+          </ul>
+        </div>
+        <p><strong>Correct Answer:</strong> {{ mcq_selected_content.correct_answer }}</p>
+        <div class="d-flex justify-content-end mt-2">
+          <a href="/admin/{{ cat_id }}/{{ mcq_selected_content.id }}/update" class="btn btn-warning mr-2" type="submit">Update MCQ</a>
+          <a href="/admin/{{ cat_id }}/{{ mcq_selected_content.id }}/delete_mcq" class="btn btn-danger" type="submit">Delete MCQ</a>
+        </div>
+      </div>
+      {% elif selected_coding %}
+      <div class="list-group-item mb-3" style="border: 1px solid #ddd; padding: 20px; background-color: #ffffff;">
+        <h5>Coding Question:</h5>
+        <p>{{ selected_coding.coding_question }}</p>
+        <iframe src="https://trinket.io/embed/python/a57e6db383" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+        <div class="d-flex justify-content-end mt-2">
+          <a href="/admin/{{ cat_id }}/{{ selected_coding.question_id }}/update" class="btn btn-warning mr-2" type="submit">Update Coding Question</a>
+          <a href="/admin/{{ cat_id }}/{{ selected_coding.question_id }}/delete_coding" class="btn btn-danger" type="submit">Delete Coding Question</a>
+        </div>
+      </div>
+      {% else %}
+      <div class="alert alert-warning" role="alert">
+        No content selected. Please select a content from the list.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="d-flex justify-content-center mt-3">
+  <a href="/admin/{{ cat_id }}/create_content" class="btn btn-primary" type="submit">Add content</a>
+</div>
+{% endblock %}

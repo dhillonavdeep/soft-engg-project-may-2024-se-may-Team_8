@@ -1,0 +1,30 @@
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #ffffff;
+    margin: 0;
+  }
+  
+  .container {
+    text-align: center;
+  }
+  
+  h1 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #090000
+  }
+  
+  .button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 18px;
+    color: #0df22c;
+    background-color: #333;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  

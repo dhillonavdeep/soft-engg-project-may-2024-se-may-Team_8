@@ -1,0 +1,40 @@
+{% extends "user_base.html" %}
+{% block title %}course details{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col-sm-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ course.course_name }}</h5>
+          <!-- Embed video -->
+          <iframe width="270" height="400" src="{{ course.course_video_link }}" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">contents at {{ course.course_name }}</h5>
+          <ul class="list-group">
+            {% for content in contents %}
+            <li class="list-group-item">
+              <div class="row">
+                <div class="col-4">
+                  <!-- Embed video -->
+                  <iframe width="100%" height="250" src="{{ content.content_video_link }}" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="col-8">
+                  <h6>{{ content.content_name }}</h6>
+                  <a href="/dashboard/cart/{{content.content_id}}" class="btn btn-primary" type="submit">cart content</a>
+                </div>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+{% endblock %}
