@@ -15,6 +15,15 @@ from flask import Flask, render_template
 from flask_restful import reqparse,Resource,Api
 from flask_security import UserMixin, RoleMixin,Security,current_user,SQLAlchemySessionUserDatastore,login_required,roles_required,login_user
 
+# from transformers import pipeline
+import ollama
+
+
+# Initialize the Hugging Face pipeline for question answering
+# ==============================================
+# qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased-distilled-squad")
+# ==============================================
+
 curr_dir=os.path.abspath(os.path.dirname(__file__))
 
 #Creating a Flask instance
@@ -684,6 +693,7 @@ def user_profile():
 def prompt():
     return render_template('prompt.html')
 
+
 @app.route('/process_prompt', methods=['POST'])
 def process_prompt():
     if session.get("user_logged_in"):
@@ -705,7 +715,20 @@ def process_prompt():
         if content:
             # Extract the transcript from the content
             transcript = content.content_transcript
-            print(f"Extracted transcript: {transcript}")  # Debugging statement
+            # print(f"Extracted transcript: {transcript}")  # Debugging statement
+
+            response = ollama.chat(model='gemma:2b', messages=[
+            {
+                'role': 'system',  # or 'assistant', depending on how you want to provide the context
+                'content': transcript,
+            },
+            {
+                'role': 'user',
+                'content': prompt,
+            },
+            ])
+            answer=response['message']['content']
+            #print(response['message']['content'])
             
             # Create a new prompt object with the prompt and transcript
             new_prompt = prompts(pprompt=prompt, ptranscript=transcript, pcontent_id=content_id, puser_id=user.user_id)
@@ -718,7 +741,9 @@ def process_prompt():
             db.session.commit()
             
             # Return a success message
-            return jsonify({'message': 'prompt created successfully.'}), 200
+            return jsonify(
+                {'Answer': answer}
+                ), 200
         else:
             # Return an error message if content is not found
             return jsonify({'error': 'Content not found.'}), 404
@@ -726,6 +751,15 @@ def process_prompt():
         # Return an error message if request method is not POST
         return jsonify({'error': 'Invalid request method.'}), 405
 
+
+@app.route("/code_help", methods=['GET', 'POST'])
+def codeHelp(code=None, question='Write a python code to add two numbers'):
+    if code==None:
+        # Answer from web
+        pass
+    else:
+        # Answer using the code as context
+        pass
 
 
 
@@ -760,6 +794,8 @@ def content_details(content_id):
             content_det=contents.query.filter_by(content_id=content_id).first()
             return render_template("content_details.html", content=content_det)
         return redirect("/")
+    
+
     
 
 #Running the app

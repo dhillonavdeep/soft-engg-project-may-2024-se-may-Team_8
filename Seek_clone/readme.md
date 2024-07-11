@@ -5,6 +5,3 @@
 -IF ANY ERROR OCCURS REGARDING DEPENDENCIES INSTALL THE  FROM requirements file 
 AS -pip install requirements
 
-//demo change
-added by milan
-added by tamanna
