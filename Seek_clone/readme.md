@@ -13,8 +13,8 @@
 6. Install the dependencies using "pip install -r requirements.txt"
 
 7.  Run the ollama part using following steps (assuming you've installed ollama.exe and done the setup part):
-    -Open windows powershell
-    -Run the command "ollama run gemma:2b" (This will start the ollama server locally) 
+    - Open windows powershell
+    - Run the command "ollama run gemma:2b" (This will start the ollama server locally) 
 
 8. Run the command "python app.py" to run the app
 
