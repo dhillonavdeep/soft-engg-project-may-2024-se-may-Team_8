@@ -91,7 +91,8 @@
                         <label for="prompt">Write your Prompt here:</label>
                         <textarea class="form-control" id="prompt" name="prompt" rows="3"></textarea>
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="sendPrompt()">Send</button>
+                    <button type="button" class="btn btn-primary" onclick="sendPromptWithTranscript()">Ask From Video</button>
+                    <button type="button" class="btn btn-secondary" onclick="sendPromptWithoutTranscript()">Ask From Web</button>
                 </form>
             </div>
             <div class="content-container mt-3">
@@ -132,7 +133,8 @@
                 <h5>Coding Question:</h5>
                 <p>{{ selected_coding.coding_question }}</p>
                 <iframe src="https://trinket.io/embed/python/a57e6db383" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
-                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Send Coding Question to API</button>
+                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Get Answer</button>
+                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Get Hint</button>
                 <div class="mt-3">
                     <h5>API Response:</h5>
                     <textarea class="form-control" id="api-coding-response" name="api-coding-response" rows="5" readonly></textarea>
@@ -168,7 +170,7 @@
         });
     });
 
-    function sendPrompt() {
+    function sendPromptWithTranscript() {
         // Get the prompt from the textarea
         var promptText = document.getElementById("prompt").value;
         
@@ -198,6 +200,59 @@
         xhr.send("prompt=" + encodeURIComponent(promptText) + "&content_id=" + contentId);
     }
 
+    function sendPromptWithoutTranscript() {
+        // Get the prompt from the textarea
+        var promptText = document.getElementById("prompt").value;
+    
+        // Create a new XMLHttpRequest object
+        var xhr = new XMLHttpRequest();
+    
+        // Configure the request
+        xhr.open("POST", "/process_web_prompt", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    
+        // Define what happens on successful data submission
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                // Parse the JSON response
+                var jsonResponse = JSON.parse(xhr.responseText);
+                var answerData = jsonResponse.Answer;
+    
+                // Update the answer HTML container with the structured content
+                var answerHTML = '';
+                if (answerData && answerData.sections) {
+                    answerData.sections.forEach(function (section) {
+                        answerHTML += '<div><strong>' + section.title + '</strong></div>';
+                        
+                        if (section.subsections) {
+                            section.subsections.forEach(function (subsection) {
+                                answerHTML += '<div><strong>' + subsection.title + '</strong></div>';
+                                
+                                if (subsection.content) {
+                                    answerHTML += '<ul>';
+                                    subsection.content.forEach(function (item) {
+                                        answerHTML += '<li>' + item + '</li>';
+                                    });
+                                    answerHTML += '</ul>';
+                                }
+                            });
+                        } else if (section.content) {
+                            answerHTML += '<ul>';
+                            section.content.forEach(function (item) {
+                                answerHTML += '<li>' + item + '</li>';
+                            });
+                            answerHTML += '</ul>';
+                        }
+                    });
+                } else {
+                    answerHTML = '<p>No structured answer available for this prompt.</p>';
+                }
+    
+                // Display the structured answer
+                document.getElementById("answer").innerHTML = answer
+                
+    
+    
     function sendQuestionsToAPI() {
         // Get the selected MCQ data
         var selectedMCQ = {
@@ -246,36 +301,61 @@
     }
 
     function sendCodingQuestionToAPI() {
-        // Get the coding question data
-        var codingQuestion = {
-            question: document.querySelector('.list-group-item.active').textContent.trim()
-        };
-
-        // Prepare the data to send
-        var requestData = JSON.stringify(codingQuestion);
-
-        // Create a new XMLHttpRequest object
+        var codingQuestion = document.getElementById("coding-question").textContent; // Assuming you have an element with id "coding-question" where the question is displayed
+        
         var xhr = new XMLHttpRequest();
-
-        // Configure the request
-        xhr.open("POST", "your_external_api_endpoint_here", true);
+        xhr.open("POST", "/get_coding_answer", true);
         xhr.setRequestHeader("Content-Type", "application/json");
-
-        // Define what happens on successful data submission
+    
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                // Handle success
-                var response = JSON.parse(xhr.responseText);
-                document.getElementById('api-coding-response').value = response;
-                alert("Coding question sent successfully!");
-            } else if (xhr.readyState === XMLHttpRequest.DONE) {
-                // Handle error
-                alert("Failed to send coding question: " + xhr.responseText);
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    var jsonResponse = JSON.parse(xhr.responseText);
+                    var answer = jsonResponse.answer;
+    
+                    // Update the answer textarea with the response
+                    document.getElementById("api-coding-response").value = answer;
+                } else {
+                    alert("Failed to get answer: " + xhr.responseText);
+                }
             }
         };
-
-        // Send the request with the coding question data
-        xhr.send(requestData);
+    
+        var data = JSON.stringify({
+            "coding_question": codingQuestion
+        });
+    
+        xhr.send(data);
+    }
+    
+    function sendCodingQuestionAndInputToAPI() {
+        var codingQuestion = document.getElementById("coding-question").textContent; // Assuming you have an element with id "coding-question" where the question is displayed
+        var additionalInput = document.getElementById("additional-input").value; // Assuming you have an input element with id "additional-input" for additional user input
+    
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/get_coding_hint", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+    
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    var jsonResponse = JSON.parse(xhr.responseText);
+                    var hint = jsonResponse.hint;
+    
+                    // Update the answer textarea with the response
+                    document.getElementById("api-coding-response").value = hint;
+                } else {
+                    alert("Failed to get hint: " + xhr.responseText);
+                }
+            }
+        };
+    
+        var data = JSON.stringify({
+            "coding_question": codingQuestion,
+            "additional_input": additionalInput
+        });
+    
+        xhr.send(data);
     }
 </script>
 {% endblock %}

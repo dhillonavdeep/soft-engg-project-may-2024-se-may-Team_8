@@ -693,6 +693,79 @@ def user_profile():
 def prompt():
     return render_template('prompt.html')
 
+@app.route('/process_web_prompt', methods=['POST'])
+def process_web_prompt():
+    try:
+        prompt = request.form['prompt']
+        print(f"Received prompt: {prompt}")
+
+        # Example: Call an external API (e.g., OpenAI) to generate a response
+        response = ollama.chat(model='gemma:2b', messages=[
+            {
+                'role': 'user',
+                'content': prompt,
+            },
+        ])
+        answer = response['message']['content']
+
+        # Return the generated response
+        return jsonify({'Answer': answer}), 200
+    except KeyError as e:
+        return f"Missing form data: {e.args[0]}", 400
+    except Exception as e:
+        return f"An error occurred: {str(e)}", 500
+
+    
+# @app.route('/process_web_prompt', methods=['POST'])
+# def process_web_prompt():
+#     if session.get("user_logged_in"):
+#         username = session["user"]
+#         user = Users.query.filter_by(user_username=username).first()
+    
+#     if request.method == 'POST':
+#         # Get the prompt from the form data
+#         prompt = request.form['prompt']
+#         print(f"Received prompt: {prompt}")  # Debugging statement
+        
+#         # Get the web content from the form data
+#         web_content = request.form['web_content']
+#         print(f"Received web content: {web_content}")  # Debugging statement
+        
+#         if web_content:
+#             response = ollama.chat(model='gemma:2b', messages=[
+#             {
+#                 'role': 'system',  # or 'assistant', depending on how you want to provide the context
+#                 'content': web_content,
+#             },
+#             {
+#                 'role': 'user',
+#                 'content': prompt,
+#             },
+#             ])
+#             answer = response['message']['content']
+#             print(f"Generated response: {answer}")  # Debugging statement
+            
+#             # Create a new prompt object with the prompt and web content
+#             new_prompt = prompts(pprompt=prompt, ptranscript=web_content, pcontent_id=None, puser_id=user.user_id)
+#             print(f"New prompt object: {new_prompt}")  # Debugging statement
+            
+#             # Add the new prompt to the database session
+#             db.session.add(new_prompt)
+            
+#             # Commit the changes to the database
+#             db.session.commit()
+            
+#             # Return a success message
+#             return jsonify(
+#                 {'Answer': answer}
+#             ), 200
+#         else:
+#             # Return an error message if web content is not provided
+#             return jsonify({'error': 'Web content not provided.'}), 400
+#     else:
+#         # Return an error message if request method is not POST
+#         return jsonify({'error': 'Invalid request method.'}), 405
+
 
 @app.route('/process_prompt', methods=['POST'])
 def process_prompt():
@@ -752,6 +825,7 @@ def process_prompt():
         return jsonify({'error': 'Invalid request method.'}), 405
 
 
+
 @app.route("/code_help", methods=['GET', 'POST'])
 def codeHelp(code=None, question='Write a python code to add two numbers'):
     if code==None:
@@ -761,6 +835,32 @@ def codeHelp(code=None, question='Write a python code to add two numbers'):
         # Answer using the code as context
         pass
 
+@app.route('/get_coding_answer', methods=['POST'])
+def get_coding_answer():
+    try:
+        data = request.get_json()
+        coding_question = data['coding_question']
+        
+        # Process the coding question and get the answer (mock example)
+        answer = process_coding_question(coding_question)
+        
+        return jsonify({'answer': answer}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/get_coding_hint', methods=['POST'])
+def get_coding_hint():
+    try:
+        data = request.get_json()
+        coding_question = data['coding_question']
+        additional_input = data['additional_input']
+        
+        # Process the coding question and additional input to generate a hint (mock example)
+        hint = process_coding_hint(coding_question, additional_input)
+        
+        return jsonify({'hint': hint}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 
