@@ -176,82 +176,94 @@
         
         // Get the content ID from the video frame
         var contentId = document.getElementById("videoFrame").dataset.contentId;
-
+    
         // Create a new XMLHttpRequest object
         var xhr = new XMLHttpRequest();
-
+    
         // Configure the request
         xhr.open("POST", "/process_prompt", true);
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
+    
         // Define what happens on successful data submission
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                // Update the answer text box with the response from the server
-                document.getElementById("answer").value = xhr.responseText;
-                // Alert the user
-                alert("Prompt submitted successfully.");
-            } else if (xhr.readyState === XMLHttpRequest.DONE) {
-                alert("Failed to submit prompt: " + xhr.responseText);
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    // Parse the JSON response
+                    var jsonResponse = JSON.parse(xhr.responseText);
+                    var answerData = jsonResponse.Answer;
+    
+                    // Update the answer HTML container with the structured content
+                    var answerHTML = '';
+                    if (answerData) {
+                        answerHTML += '<div><strong>Answer:</strong></div>';
+                        answerHTML += '<p>' + answerData + '</p>';
+                    } else {
+                        answerHTML = '<p>No answer available for this prompt.</p>';
+                    }
+    
+                    // Display the structured answer
+                    document.getElementById("answer").innerHTML = answerHTML;
+                    alert("Prompt submitted successfully.");
+                } else {
+                    alert("Failed to submit prompt: " + xhr.responseText);
+                }
             }
         };
-
+    
         // Send the request with the prompt and content ID
         xhr.send("prompt=" + encodeURIComponent(promptText) + "&content_id=" + contentId);
     }
-
+        
     function sendPromptWithoutTranscript() {
-        // Get the prompt from the textarea
         var promptText = document.getElementById("prompt").value;
     
-        // Create a new XMLHttpRequest object
         var xhr = new XMLHttpRequest();
-    
-        // Configure the request
         xhr.open("POST", "/process_web_prompt", true);
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     
-        // Define what happens on successful data submission
         xhr.onreadystatechange = function () {
-            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                // Parse the JSON response
-                var jsonResponse = JSON.parse(xhr.responseText);
-                var answerData = jsonResponse.Answer;
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    var jsonResponse = JSON.parse(xhr.responseText);
+                    var answerData = jsonResponse.Answer;
     
-                // Update the answer HTML container with the structured content
-                var answerHTML = '';
-                if (answerData && answerData.sections) {
-                    answerData.sections.forEach(function (section) {
-                        answerHTML += '<div><strong>' + section.title + '</strong></div>';
-                        
-                        if (section.subsections) {
-                            section.subsections.forEach(function (subsection) {
-                                answerHTML += '<div><strong>' + subsection.title + '</strong></div>';
-                                
-                                if (subsection.content) {
-                                    answerHTML += '<ul>';
-                                    subsection.content.forEach(function (item) {
-                                        answerHTML += '<li>' + item + '</li>';
-                                    });
-                                    answerHTML += '</ul>';
-                                }
-                            });
-                        } else if (section.content) {
-                            answerHTML += '<ul>';
-                            section.content.forEach(function (item) {
-                                answerHTML += '<li>' + item + '</li>';
-                            });
-                            answerHTML += '</ul>';
-                        }
-                    });
+                    var answerHTML = ''; // Process and format the answer data
+                    if (answerData && answerData.sections) {
+                        answerData.sections.forEach(function (section) {
+                            answerHTML += '<div><strong>' + section.title + '</strong></div>';
+                            if (section.subsections) {
+                                section.subsections.forEach(function (subsection) {
+                                    answerHTML += '<div><strong>' + subsection.title + '</strong></div>';
+                                    if (subsection.content) {
+                                        answerHTML += '<ul>';
+                                        subsection.content.forEach(function (item) {
+                                            answerHTML += '<li>' + item + '</li>';
+                                        });
+                                        answerHTML += '</ul>';
+                                    }
+                                });
+                            } else if (section.content) {
+                                answerHTML += '<ul>';
+                                section.content.forEach(function (item) {
+                                    answerHTML += '<li>' + item + '</li>';
+                                });
+                                answerHTML += '</ul>';
+                            }
+                        });
+                    } else {
+                        answerHTML = '<p>No structured answer available for this prompt.</p>';
+                    }
+    
+                    document.getElementById("answer").innerHTML = answerHTML;
                 } else {
-                    answerHTML = '<p>No structured answer available for this prompt.</p>';
+                    alert("Failed to get answer: " + xhr.responseText);
                 }
+            }
+        };
     
-                // Display the structured answer
-                document.getElementById("answer").innerHTML = answer
-                
-    
+        xhr.send("prompt=" + encodeURIComponent(promptText));
+    }
+
     
     function sendQuestionsToAPI() {
         // Get the selected MCQ data

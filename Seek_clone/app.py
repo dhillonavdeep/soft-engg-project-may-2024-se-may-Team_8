@@ -696,24 +696,22 @@ def prompt():
 @app.route('/process_web_prompt', methods=['POST'])
 def process_web_prompt():
     try:
-        prompt = request.form['prompt']
+        prompt = request.form.get('prompt')
         print(f"Received prompt: {prompt}")
 
-        # Example: Call an external API (e.g., OpenAI) to generate a response
+        # Generate response using model
         response = ollama.chat(model='gemma:2b', messages=[
-            {
-                'role': 'user',
-                'content': prompt,
-            },
+            {'role': 'user', 'content': prompt}
         ])
         answer = response['message']['content']
+        print(f"Generated answer: {answer}")
 
         # Return the generated response
         return jsonify({'Answer': answer}), 200
     except KeyError as e:
-        return f"Missing form data: {e.args[0]}", 400
+        return jsonify({'error': f"Missing form data: {e.args[0]}"}), 400
     except Exception as e:
-        return f"An error occurred: {str(e)}", 500
+        return jsonify({'error': f"An error occurred: {str(e)}"}), 500
 
     
 # @app.route('/process_web_prompt', methods=['POST'])
@@ -772,57 +770,44 @@ def process_prompt():
     if session.get("user_logged_in"):
         username = session["user"]
         user = Users.query.filter_by(user_username=username).first()
-    
-    if request.method == 'POST':
-        # Get the prompt from the form data
-        prompt = request.form['prompt']
-        print(f"Received prompt: {prompt}")  # Debugging statement
-        
-        # Get the content ID from the form data
-        content_id = request.form['content_id']
-        print(f"Received content_id: {content_id}")  # Debugging statement
-        
-        # Retrieve the content object using the content ID
-        content = db.session.query(contents).get(content_id)
-        
-        if content:
-            # Extract the transcript from the content
-            transcript = content.content_transcript
-            # print(f"Extracted transcript: {transcript}")  # Debugging statement
 
-            response = ollama.chat(model='gemma:2b', messages=[
-            {
-                'role': 'system',  # or 'assistant', depending on how you want to provide the context
-                'content': transcript,
-            },
-            {
-                'role': 'user',
-                'content': prompt,
-            },
-            ])
-            answer=response['message']['content']
-            #print(response['message']['content'])
+        if request.method == 'POST':
+            # Get the prompt from the form data
+            prompt = request.form.get('prompt')
+            print(f"Received prompt: {prompt}")  # Debugging statement
             
-            # Create a new prompt object with the prompt and transcript
-            new_prompt = prompts(pprompt=prompt, ptranscript=transcript, pcontent_id=content_id, puser_id=user.user_id)
-            print(f"New prompt object: {new_prompt}")  # Debugging statement
+            # Get the content ID from the form data
+            content_id = request.form.get('content_id')
+            print(f"Received content_id: {content_id}")  # Debugging statement
             
-            # Add the new prompt to the database session
-            db.session.add(new_prompt)
+            # Retrieve the content object using the content ID
+            content = db.session.query(contents).get(content_id)
             
-            # Commit the changes to the database
-            db.session.commit()
-            
-            # Return a success message
-            return jsonify(
-                {'Answer': answer}
-                ), 200
-        else:
-            # Return an error message if content is not found
-            return jsonify({'error': 'Content not found.'}), 404
+            if content:
+                # Extract the transcript from the content
+                transcript = content.content_transcript
+                print(f"Extracted transcript: {transcript}")  # Debugging statement
+
+                # Generate response using model
+                response = ollama.chat(model='gemma:2b', messages=[
+                    {'role': 'system', 'content': transcript},
+                    {'role': 'user', 'content': prompt}
+                ])
+                answer = response['message']['content']
+                print(f"Generated answer: {answer}")  # Debugging statement
+
+                # Save the new prompt to the database
+                new_prompt = prompts(pprompt=prompt, ptranscript=transcript, pcontent_id=content_id, puser_id=user.user_id)
+                db.session.add(new_prompt)
+                db.session.commit()
+                
+                # Return the generated response
+                return jsonify({'Answer': answer}), 200
+            else:
+                return jsonify({'error': 'Content not found.'}), 404
     else:
-        # Return an error message if request method is not POST
-        return jsonify({'error': 'Invalid request method.'}), 405
+        return jsonify({'error': 'User not logged in.'}), 401
+
 
 
 
