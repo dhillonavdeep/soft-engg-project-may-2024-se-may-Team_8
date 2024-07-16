@@ -697,7 +697,7 @@ def prompt():
 def process_web_prompt():
     try:
         prompt = request.form.get('prompt')
-        print(f"Received prompt: {prompt}")
+        print(f"Received prompt: {prompt}\n The user wants answer without context")
 
         # Generate response using model
         response = ollama.chat(model='gemma:2b', messages=[
@@ -713,57 +713,6 @@ def process_web_prompt():
     except Exception as e:
         return jsonify({'error': f"An error occurred: {str(e)}"}), 500
 
-    
-# @app.route('/process_web_prompt', methods=['POST'])
-# def process_web_prompt():
-#     if session.get("user_logged_in"):
-#         username = session["user"]
-#         user = Users.query.filter_by(user_username=username).first()
-    
-#     if request.method == 'POST':
-#         # Get the prompt from the form data
-#         prompt = request.form['prompt']
-#         print(f"Received prompt: {prompt}")  # Debugging statement
-        
-#         # Get the web content from the form data
-#         web_content = request.form['web_content']
-#         print(f"Received web content: {web_content}")  # Debugging statement
-        
-#         if web_content:
-#             response = ollama.chat(model='gemma:2b', messages=[
-#             {
-#                 'role': 'system',  # or 'assistant', depending on how you want to provide the context
-#                 'content': web_content,
-#             },
-#             {
-#                 'role': 'user',
-#                 'content': prompt,
-#             },
-#             ])
-#             answer = response['message']['content']
-#             print(f"Generated response: {answer}")  # Debugging statement
-            
-#             # Create a new prompt object with the prompt and web content
-#             new_prompt = prompts(pprompt=prompt, ptranscript=web_content, pcontent_id=None, puser_id=user.user_id)
-#             print(f"New prompt object: {new_prompt}")  # Debugging statement
-            
-#             # Add the new prompt to the database session
-#             db.session.add(new_prompt)
-            
-#             # Commit the changes to the database
-#             db.session.commit()
-            
-#             # Return a success message
-#             return jsonify(
-#                 {'Answer': answer}
-#             ), 200
-#         else:
-#             # Return an error message if web content is not provided
-#             return jsonify({'error': 'Web content not provided.'}), 400
-#     else:
-#         # Return an error message if request method is not POST
-#         return jsonify({'error': 'Invalid request method.'}), 405
-
 
 @app.route('/process_prompt', methods=['POST'])
 def process_prompt():
@@ -774,7 +723,7 @@ def process_prompt():
         if request.method == 'POST':
             # Get the prompt from the form data
             prompt = request.form.get('prompt')
-            print(f"Received prompt: {prompt}")  # Debugging statement
+            print(f"Received prompt: {prompt}\n The user wants answer in context of video")  # Debugging statement
             
             # Get the content ID from the form data
             content_id = request.form.get('content_id')
@@ -786,7 +735,7 @@ def process_prompt():
             if content:
                 # Extract the transcript from the content
                 transcript = content.content_transcript
-                print(f"Extracted transcript: {transcript}")  # Debugging statement
+                #print(f"Extracted transcript: {transcript}")  # Debugging statement
 
                 # Generate response using model
                 response = ollama.chat(model='gemma:2b', messages=[
@@ -809,36 +758,45 @@ def process_prompt():
         return jsonify({'error': 'User not logged in.'}), 401
 
 
+def process_coding_question(coding_question): # FOR EXACT ANSWER
+    response = ollama.chat(model='gemma:2b', messages=[
+        {
+            'role':'user',
+            'content': coding_question,
+        },
+    ])
+    answer = response['message']['content']
+    print(f"ANSWER=\n{answer}")
+    return answer
+
+def process_coding_hint(coding_question, additional_input):
+    return "DUMMY HINT"
 
 
-@app.route("/code_help", methods=['GET', 'POST'])
-def codeHelp(code=None, question='Write a python code to add two numbers'):
-    if code==None:
-        # Answer from web
-        pass
-    else:
-        # Answer using the code as context
-        pass
-
+# GET EXACT ANSWER TO THE CODING QUESTION
 @app.route('/get_coding_answer', methods=['POST'])
 def get_coding_answer():
     try:
+        print("USER WANTS THE EXACT ANSWER")
         data = request.get_json()
         coding_question = data['coding_question']
-        
-        # Process the coding question and get the answer (mock example)
+        print(f"Recieved Coding question = {coding_question}")
         answer = process_coding_question(coding_question)
         
         return jsonify({'answer': answer}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# GET HINT TO THE CODING QUESTION
 @app.route('/get_coding_hint', methods=['POST'])
 def get_coding_hint():
     try:
+        print("INSIDE TRY BLOCK")
         data = request.get_json()
         coding_question = data['coding_question']
+        print(f"Recieved DATA is: Question = {coding_question}")
         additional_input = data['additional_input']
+        print(f"ADDITIONAL INPUT={additional_input}")
         
         # Process the coding question and additional input to generate a hint (mock example)
         hint = process_coding_hint(coding_question, additional_input)

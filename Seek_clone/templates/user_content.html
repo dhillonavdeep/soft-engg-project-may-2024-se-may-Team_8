@@ -131,10 +131,10 @@
         {% elif selected_coding %}
             <div class="content-container">
                 <h5>Coding Question:</h5>
-                <p>{{ selected_coding.coding_question }}</p>
-                <iframe src="https://trinket.io/embed/python/a57e6db383" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
-                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Get Answer</button>
-                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Get Hint</button>
+                <p id="coding-question">{{ selected_coding.coding_question }}</p>
+                <iframe id="additional-input" src="https://trinket.io/embed/python/a57e6db383" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Get Answer</button> <!--GET THE EXACT ANSWER-->
+                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionAndInputToAPI()">Get Hint</button> <!--GET THE HINT-->
                 <div class="mt-3">
                     <h5>API Response:</h5>
                     <textarea class="form-control" id="api-coding-response" name="api-coding-response" rows="5" readonly></textarea>
@@ -214,7 +214,7 @@
         xhr.send("prompt=" + encodeURIComponent(promptText) + "&content_id=" + contentId);
     }
         
-    function sendPromptWithoutTranscript() {
+    function sendPromptWithoutTranscript_original_by_NAVDEEP() {
         var promptText = document.getElementById("prompt").value;
     
         var xhr = new XMLHttpRequest();
@@ -263,6 +263,45 @@
     
         xhr.send("prompt=" + encodeURIComponent(promptText));
     }
+
+    function sendPromptWithoutTranscript() {
+    var promptText = document.getElementById("prompt").value;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/process_web_prompt", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            console.log("Raw response:", xhr.responseText); // Log raw response
+            if (xhr.status === 200) {
+                try {
+                    var jsonResponse = JSON.parse(xhr.responseText);
+                    console.log("Parsed response:", jsonResponse); // Log parsed response
+                    var answerData = jsonResponse.Answer;
+
+                    var answerHTML = ''; // Process and format the answer data
+                    if (answerData) {
+                        answerHTML += '<div><strong>Answer:</strong></div>';
+                        answerHTML += '<p>' + answerData + '</p>';
+                    } else {
+                        answerHTML = '<p>No structured answer available for this prompt.</p>';
+                    }
+
+                    document.getElementById("answer").innerHTML = answerHTML;
+                } catch (e) {
+                    console.error("Error parsing response:", e);
+                    document.getElementById("answer").innerHTML = '<p>Error parsing response.</p>';
+                }
+            } else {
+                console.error("Failed to get answer. Status:", xhr.status, "Response:", xhr.responseText);
+                document.getElementById("answer").innerHTML = '<p>Failed to get answer.</p>';
+            }
+        }
+    };
+
+    xhr.send("prompt=" + encodeURIComponent(promptText));
+}
 
     
     function sendQuestionsToAPI() {
@@ -342,8 +381,9 @@
     
     function sendCodingQuestionAndInputToAPI() {
         var codingQuestion = document.getElementById("coding-question").textContent; // Assuming you have an element with id "coding-question" where the question is displayed
-        var additionalInput = document.getElementById("additional-input").value; // Assuming you have an input element with id "additional-input" for additional user input
-    
+        // var additionalInput = document.getElementById("additional-input").value; // Assuming you have an input element with id "additional-input" for additional user input
+        var additionalInput = document.getElementById("additional-input").textContent; // Assuming you have an input element with id "additional-input" for additional user input
+        
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "/get_coding_hint", true);
         xhr.setRequestHeader("Content-Type", "application/json");
