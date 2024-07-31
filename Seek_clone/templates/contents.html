@@ -21,6 +21,11 @@
           {{ coding_q.content_name }}
         </a>
         {% endfor %}
+        {% for subj in subjective_questions %}
+        <a href="?selected_subjective={{ subj.question_id }}" class="list-group-item list-group-item-action {% if selected_subjective and subj.question_id == selected_subjective.question_id %}active{% endif %}">
+          {{ subj.content_name }}
+        </a>
+        {% endfor %}
       </div>
     </div>
     <div class="col-md-9">
@@ -74,6 +79,15 @@
         <div class="d-flex justify-content-end mt-2">
           <a href="/admin/{{ cat_id }}/{{ selected_coding.question_id }}/update" class="btn btn-warning mr-2" type="submit">Update Coding Question</a>
           <a href="/admin/{{ cat_id }}/{{ selected_coding.question_id }}/delete_coding" class="btn btn-danger" type="submit">Delete Coding Question</a>
+        </div>
+      </div>
+      {% elif selected_subjective %}
+      <div class="list-group-item mb-3" style="border: 1px solid #ddd; padding: 20px; background-color: #ffffff;">
+        <h5>Subjective Question:</h5>
+        <p>{{ selected_subjective.subjective_question }}</p>
+        <div class="d-flex justify-content-end mt-2">
+          <a href="/admin/{{ cat_id }}/{{ selected_subjective.question_id }}/update" class="btn btn-warning mr-2" type="submit">Update Subjective Question</a>
+          <a href="/admin/{{ cat_id }}/{{ selected_subjective.question_id }}/delete_subjective" class="btn btn-danger" type="submit">Delete Subjective Question</a>
         </div>
       </div>
       {% else %}

@@ -91,6 +91,11 @@ class Coding(db.Model):
     coding_question = db.Column(db.String(255))
     content_name = db.Column(db.String(30), nullable=False)
 
+class Subjective(db.Model):
+    question_id = db.Column(db.Integer, primary_key=True)
+    subjective_question = db.Column(db.String(255))
+    content_name = db.Column(db.String(30), nullable=False)    
+
 class Users(db.Model):
     __tablename__="users"
     user_id=db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
@@ -354,20 +359,20 @@ def create_course():
 @app.route("/admin/<cat_id>/create_content", methods=["GET", "POST"])
 def create_content(cat_id):
     if request.method == "GET":
-        if session["logged_in"]:
+        if session.get("logged_in"):
             usrname = session["usr"]
             return render_template('add_content.html', admin_username=usrname, cat_id=cat_id)
         return redirect("/admin_login")
 
     if request.method == "POST":
         content_type = request.form.get("content_type")
+        p_name = request.form["p_name"]
 
         if content_type == "assignment":
             question = request.form["assignment_question"]
             option_a = request.form["option_a"]
             option_b = request.form["option_b"]
             option_c = request.form["option_c"]
-            p_name = request.form["p_name"]
             option_d = request.form["option_d"]
             correct_answer = request.form["correct_answer"]
 
@@ -388,14 +393,12 @@ def create_content(cat_id):
             return redirect("/admin/" + cat_id + "/contents")
 
         elif content_type == "video":
-            p_name = request.form["p_name"]
             p_transcript = request.form["p_transcript"]
             p_link = request.form["p_link"]
 
             content_data = contents(
                 content_name=p_name,
                 content_transcript=p_transcript,
-               
                 content_course_id=cat_id,
                 content_link=p_link
             )
@@ -407,11 +410,9 @@ def create_content(cat_id):
 
         elif content_type == "programming":
             question = request.form["programming_question"]
-            p_name = request.form["p_name"]
-            
 
             coding_data = Coding(
-                coding_question=question,  # Corrected field name
+                coding_question=question,
                 content_name=p_name
             )
 
@@ -419,6 +420,20 @@ def create_content(cat_id):
             db.session.commit()
             flash("Programming question created successfully!", "success")
             return redirect("/admin/" + cat_id + "/contents")
+
+        elif content_type == "subjective":
+            question = request.form["subjective_question"]
+
+            subjective_data = Subjective(
+                subjective_question=question,
+                content_name=p_name
+            )
+
+            db.session.add(subjective_data)
+            db.session.commit()
+            flash("Subjective question created successfully!", "success")
+            return redirect("/admin/" + cat_id + "/contents")
+
 
     # Handle other cases
     return redirect("/admin_login")
@@ -434,28 +449,34 @@ def admin_content(cat_id):
             content_list = contents.query.filter_by(content_course_id=cat_id).all()
             mcq_assignments = MCQAssignment.query.filter_by(course_id=cat_id).all()
             coding_questions = Coding.query.all()
+            subjective_questions = Subjective.query.all()  # Fetch all subjective questions
 
-            # Extracting selected content, MCQ, and coding question based on query parameters
+            # Extracting selected content, MCQ, coding, and subjective question based on query parameters
             selected_content_id = request.args.get("selected")
             selected_mcq_id = request.args.get("selected_mcq")
             selected_coding_id = request.args.get("selected_coding")
+            selected_subjective_id = request.args.get("selected_subjective")  # New line for subjective question
 
             selected_content = contents.query.get(selected_content_id) if selected_content_id else None
             selected_mcq = MCQAssignment.query.get(selected_mcq_id) if selected_mcq_id else None
             selected_coding = Coding.query.get(selected_coding_id) if selected_coding_id else None
+            selected_subjective = Subjective.query.get(selected_subjective_id) if selected_subjective_id else None  # Fetch selected subjective question
 
             return render_template(
-                "contents.html", 
-                admin_username=admin_username, 
-                cat_id=cat_id, 
-                content_list=content_list, 
-                selected_content=selected_content, 
-                mcq_assignments=mcq_assignments, 
+                "contents.html",
+                admin_username=admin_username,
+                cat_id=cat_id,
+                content_list=content_list,
+                selected_content=selected_content,
+                mcq_assignments=mcq_assignments,
                 mcq_selected_content=selected_mcq,
                 coding_questions=coding_questions,
-                selected_coding=selected_coding
+                selected_coding=selected_coding,
+                subjective_questions=subjective_questions,  # Pass subjective questions to template
+                selected_subjective=selected_subjective  # Pass selected subjective question to template
             )
         return redirect("/admin_login")
+
 
 
 
@@ -529,11 +550,20 @@ def update_show(cat_id, content_id):
         if session.get("logged_in"):
             usrname = session["usr"]
             content_detail = contents.query.filter_by(content_id=content_id).first()
-            # Fetch additional details for MCQ and Coding questions
-            mcq_selected_content = None  # Fetch MCQ details
-            coding_selected_content = None  # Fetch Coding question details
-            return render_template("update_content.html", content_detail=content_detail, admin_username=usrname, cat_id=cat_id, mcq_selected_content=mcq_selected_content, coding_selected_content=coding_selected_content)
+            mcq_selected_content = MCQAssignment.query.filter_by(id=content_id).first()
+            coding_selected_content = Coding.query.filter_by(question_id=content_id).first()
+            subjective_selected_content = Subjective.query.filter_by(question_id=content_id).first()  # Fetch subjective question details
+            return render_template(
+                "update_content.html", 
+                content_detail=content_detail, 
+                admin_username=usrname, 
+                cat_id=cat_id, 
+                mcq_selected_content=mcq_selected_content, 
+                coding_selected_content=coding_selected_content,
+                subjective_selected_content=subjective_selected_content
+            )
         return redirect("/admin_login")
+    
     if request.method == "POST":
         # Process form submission
         content_detail = contents.query.filter_by(content_id=content_id).first()
@@ -554,6 +584,17 @@ def update_show(cat_id, content_id):
         elif content_detail.content_type == "programming":
             content_detail.programming_question = request.form["programming_question"]
             content_detail.name = request.form["Name"]
+        elif content_detail.content_type == "subjective":  # Handle subjective questions
+            subjective_selected_content = Subjective.query.filter_by(question_id=content_id).first()
+            if subjective_selected_content:
+                subjective_selected_content.subjective_question = request.form["subjective_question"]
+            else:
+                new_subjective_question = Subjective(
+                    question_id=content_id,
+                    subjective_question=request.form["subjective_question"],
+                    content_name=content_name
+                )
+                db.session.add(new_subjective_question)
 
         db.session.commit()
         flash("Content details updated successfully!", "success")
@@ -614,6 +655,22 @@ def delete_coding_problem(cat_id,question_id):
     
     return redirect("/admin_login")
 
+@app.route("/admin/<cat_id>/<question_id>/delete_subjective", methods=["GET", "POST"])
+def delete_subjective(cat_id, question_id):
+    if session.get("logged_in"):
+        content = Subjective.query.filter_by(question_id=question_id).first()
+        
+        if content:
+            db.session.delete(content)
+            db.session.commit()
+            flash("Content deleted successfully!", "success")
+            return redirect(f"/admin/{cat_id}/contents")
+        
+        flash("Content not found!", "error")
+        return redirect(f"/admin/{cat_id}/contents")
+    
+    return redirect("/admin_login")
+
 
 #---------------------------------------------ADMIN PROFILE-----------------------------------------------------
 @app.route("/a_profile", methods=["GET", "POST"])
@@ -645,23 +702,59 @@ def course_page(course_id):
     if session.get("user_logged_in"):
         username = session["user"]
         user = Users.query.filter_by(user_username=username).first()
-        course_data = course.query.get(course_id)
-        content = contents.query.filter_by(content_course_id=course_id).all()
+        course_data = course.query.get(course_id)  # Ensure 'Course' matches your model name
+        content = contents.query.filter_by(content_course_id=course_id).all()  # Ensure 'Contents' matches your model name
         mcq_assignments = MCQAssignment.query.filter_by(course_id=course_id).all()
         coding_questions = Coding.query.all()
+        subjective_questions = Subjective.query.all()
 
         selected_content_id = request.args.get("selected")
         selected_mcq_id = request.args.get("selected_mcq")
         selected_coding_id = request.args.get("selected_coding")
+        selected_subjective_id = request.args.get("selected_subjective")
 
         selected_content = contents.query.get(selected_content_id) if selected_content_id else None
         selected_mcq = MCQAssignment.query.get(selected_mcq_id) if selected_mcq_id else None
         selected_coding = Coding.query.get(selected_coding_id) if selected_coding_id else None
+        selected_subjective = Subjective.query.get(selected_subjective_id) if selected_subjective_id else None
 
-        return render_template("user_content.html", usr_usrname=user.user_username, course_name=course_data.course_name, content=content, selected_content=selected_content, mcq_assignments=mcq_assignments, selected_mcq=selected_mcq, coding_questions=coding_questions, selected_coding=selected_coding)
+        return render_template(
+            "user_content.html",
+            usr_usrname=user.user_username,
+            course_name=course_data.course_name,
+            content=content,
+            selected_content=selected_content,
+            mcq_assignments=mcq_assignments,
+            selected_mcq=selected_mcq,
+            coding_questions=coding_questions,
+            selected_coding=selected_coding,
+            subjective_questions=subjective_questions,  # Pass the list of subjective questions to the template
+            selected_subjective=selected_subjective
+        )
     return redirect("/user_login")
 
 
+#--------------------------subjective api--------------------------------
+@app.route("/evaluate_subjective", methods=["POST"])
+def evaluate_subjective():
+    if session.get("user_logged_in"):
+        data = request.get_json()
+        subjective_question_id = data.get("subjective_question_id")
+        response_text = data.get("response")
+
+        # Call your external API for evaluation here
+        """external_api_url = "https://example.com/evaluate_subjective"
+        payload = {
+            "question_id": subjective_question_id,
+            "response": response_text
+        }
+
+        response = requests.post(external_api_url, json=payload)
+        if response.status_code == 200:
+            return jsonify(response.json()), 200
+        else:
+            return jsonify({"error": "Failed to get response from the external API"}), response.status_code"""
+    return redirect("/user_login")
 
 #--------------------------delete item------------------------------------        
 @app.route("/dashboard/delete_prompt_item/<int:prompt_id>", methods=["POST"])
@@ -758,7 +851,7 @@ def process_prompt():
         return jsonify({'error': 'User not logged in.'}), 401
 
 
-def process_coding_question(coding_question): # FOR EXACT ANSWER
+def process_coding_question(coding_question):
     response = ollama.chat(model='gemma:2b', messages=[
         {
             'role':'user',
@@ -767,10 +860,25 @@ def process_coding_question(coding_question): # FOR EXACT ANSWER
     ])
     answer = response['message']['content']
     print(f"ANSWER=\n{answer}")
+    # Remove ```python and ``` from the answer
+    answer = answer.replace('```python', '').replace('```', '').replace('**', '')
     return answer
 
 def process_coding_hint(coding_question, additional_input):
-    return "DUMMY HINT"
+    response = ollama.chat(model='gemma:2b', messages=[
+        {
+            'role':'user',
+            'content': coding_question,
+        },
+        {
+            'role':'user',
+            'content': " Give hint to solve the question, based on the question, dont provide the exact code,but provide insightss whats can be dont for the question, steps ,functions variables to make and much more ,the code writen by the user till now is : "+ additional_input,
+        }
+    ])
+    answer = response['message']['content']
+    print(f"ANSWER=\n{answer}")
+    answer = answer.replace('```python', '').replace('```', '').replace('**', '')
+    return answer
 
 
 # GET EXACT ANSWER TO THE CODING QUESTION
@@ -794,11 +902,10 @@ def get_coding_hint():
         print("INSIDE TRY BLOCK")
         data = request.get_json()
         coding_question = data['coding_question']
-        print(f"Recieved DATA is: Question = {coding_question}")
         additional_input = data['additional_input']
-        print(f"ADDITIONAL INPUT={additional_input}")
+        print(f"Received DATA: Question = {coding_question}, Additional Input = {additional_input}")
         
-        # Process the coding question and additional input to generate a hint (mock example)
+        # Process the coding question and additional input to generate a hint
         hint = process_coding_hint(coding_question, additional_input)
         
         return jsonify({'hint': hint}), 200

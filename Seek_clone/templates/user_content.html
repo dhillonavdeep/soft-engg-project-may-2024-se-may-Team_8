@@ -1,50 +1,8 @@
 {% extends "user_base.html" %}
 {% block title %} Course {{ course_name }} {% endblock %}
 {% block content %}
-<style>
-    .stock-out {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        font-size: 24px;
-        color: red;
-        text-align: center;
-    }
-    .mcq-option {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    .mcq-option:hover {
-        background-color: #f1f1f1;
-    }
-    .mcq-option input {
-        margin-right: 10px;
-    }
-    .list-group-item.active {
-        background-color: blue !important;
-        color: white !important;
-        border-color: blue !important;
-    }
-    .list-group-item:hover {
-        background-color: lightblue;
-        color: black;
-    }
-    .content-container {
-        background-color: white;
-        border: 1px solid #ddd;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-</style>
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_content.css') }}">
 <div class="row">
     <div class="col-sm-6 col-lg-8">{{ usr_usrname }}</div>
 </div>
@@ -57,14 +15,22 @@
                         {{ item.content_name }}
                     </a>
                 {% endfor %}
+
                 {% for mcq in mcq_assignments %}
                     <a href="?selected_mcq={{ mcq.id }}" class="list-group-item list-group-item-action {% if selected_mcq and mcq.id == selected_mcq.id %}active{% endif %}">
                         {{ mcq.content_name }}
                     </a>
                 {% endfor %}
+                
                 {% for coding_q in coding_questions %}
-                    <a href="?selected_coding={{ coding_q.question_id }}" class="list-group-item list-group-item-action {% if selected_coding and coding_q.id == selected_coding.id %}active{% endif %}">
+                    <a href="?selected_coding={{ coding_q.question_id }}" class="list-group-item list-group-item-action {% if selected_coding and coding_q.question_id == selected_coding.question_id %}active{% endif %}">
                         {{ coding_q.content_name }}
+                    </a>
+                {% endfor %}
+                
+                {% for subjective in subjective_questions %}
+                    <a href="?selected_subjective={{ subjective.question_id }}" class="list-group-item list-group-item-action {% if selected_subjective and subjective.question_id == selected_subjective.question_id %}active{% endif %}">
+                        {{ subjective.content_name }}
                     </a>
                 {% endfor %}
             {% else %}
@@ -100,56 +66,76 @@
                 <textarea class="form-control" id="answer" name="answer" rows="3" readonly></textarea>
             </div>
         {% elif selected_mcq %}
-            <div class="content-container">
-                <div class="d-flex w-100 justify-content-between mb-3" style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
-                    <h5 class="mb-1" style="border: 1px solid #ccc; padding: 5px 10px; background-color: #f8f8f8;">{{ selected_mcq.question }}</h5>
+            {% for mcq in mcq_assignments %}
+                <div class="content-container">
+                    <div class="d-flex w-100 justify-content-between mb-3" style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                        <h5 class="mb-1" style="border: 1px solid #ccc; padding: 5px 10px; background-color: #f8f8f8;">{{ mcq.question }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <p>Options:</p>
+                        <ul id="mcq-options-{{ mcq.id }}" data-correct-answer="{{ mcq.correct_answer }}">
+                            <li class="mcq-option" data-answer="A">
+                                <input type="radio" name="mcq_{{ mcq.id }}" value="A">
+                                <label>{{ mcq.option_a }}</label>
+                            </li>
+                            <li class="mcq-option" data-answer="B">
+                                <input type="radio" name="mcq_{{ mcq.id }}" value="B">
+                                <label>{{ mcq.option_b }}</label>
+                            </li>
+                            <li class="mcq-option" data-answer="C">
+                                <input type="radio" name="mcq_{{ mcq.id }}" value="C">
+                                <label>{{ mcq.option_c }}</label>
+                            </li>
+                            <li class="mcq-option" data-answer="D">
+                                <input type="radio" name="mcq_{{ mcq.id }}" value="D">
+                                <label>{{ mcq.option_d }}</label>
+                            </li>
+                        </ul>
+                    </div>
+                    <p id="feedback-{{ mcq.id }}" style="display: none;"><strong>Feedback:</strong> <span id="feedback-text-{{ mcq.id }}"></span></p>
+                    <button type="button" class="btn btn-primary" onclick="sendQuestionsToAPI('{{ mcq.id }}')">Send Questions to API</button>
                 </div>
-                <div class="mb-3">
-                    <p>Options:</p>
-                    <ul id="mcq-options" data-correct-answer="{{ selected_mcq.correct_answer }}">
-                        <li class="mcq-option" data-answer="A">
-                            <input type="radio" name="mcq" value="A">
-                            <label>{{ selected_mcq.option_a }}</label>
-                        </li>
-                        <li class="mcq-option" data-answer="B">
-                            <input type="radio" name="mcq" value="B">
-                            <label>{{ selected_mcq.option_b }}</label>
-                        </li>
-                        <li class="mcq-option" data-answer="C">
-                            <input type="radio" name="mcq" value="C">
-                            <label>{{ selected_mcq.option_c }}</label>
-                        </li>
-                        <li class="mcq-option" data-answer="D">
-                            <input type="radio" name="mcq" value="D">
-                            <label>{{ selected_mcq.option_d }}</label>
-                        </li>
-                    </ul>
-                </div>
-                <p id="feedback" style="display: none;"><strong>Feedback:</strong> <span id="feedback-text"></span></p>
-                <button type="button" class="btn btn-primary" onclick="sendQuestionsToAPI()">Send Questions to API</button>
-            </div>
+            {% endfor %}
         {% elif selected_coding %}
             <div class="content-container">
                 <h5>Coding Question:</h5>
                 <p id="coding-question">{{ selected_coding.coding_question }}</p>
-                <iframe id="additional-input" src="https://trinket.io/embed/python/a57e6db383" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
-                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Get Answer</button> <!--GET THE EXACT ANSWER-->
-                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionAndInputToAPI()">Get Hint</button> <!--GET THE HINT-->
-                <div class="mt-3">
-                    <h5>API Response:</h5>
-                    <textarea class="form-control" id="api-coding-response" name="api-coding-response" rows="5" readonly></textarea>
+                <div id="editor" style="height: 600px; width: 100%;"></div>
+                <textarea id="coding-answer" name="coding_answer" style="display:none;"></textarea>
+                <button type="button" class="btn btn-primary mt-3" onclick="sendCodingQuestionToAPI()">Get Answer</button>
+                <button type="button" class="btn btn-secondary mt-3" onclick="sendCodingQuestionAndInputToAPI()">Get Hint</button>
+                <div id="coding-answer-container" class="mt-3" style="display: none;">
+                    <h5>Answer:</h5>
+                    <textarea id="api-coding-response" class="form-control" rows="3" readonly></textarea>
+                </div>
+            </div>
+        {% elif selected_subjective %}
+            <div class="content-container">
+                <h5>Subjective Question:</h5>
+                <p id="subjective-question">{{ selected_subjective.subjective_question }}</p>
+                <button type="button" class="btn btn-primary mt-3" onclick="sendSubjectiveQuestionToAPI()">Get Answer</button>
+                <div id="subjective-answer-container" class="mt-3" style="display: none;">
+                    <h5>Answer:</h5>
+                    <textarea id="subjective-answer" class="form-control" rows="3" readonly></textarea>
                 </div>
             </div>
         {% else %}
-            <div class="alert alert-warning" role="alert">
-                No content selected. Please select a content from the list.
+            <div class="content-container">
+                <p>Please select an item from the list.</p>
             </div>
         {% endif %}
     </div>
 </div>
 
 <script>
+    
+
     document.addEventListener('DOMContentLoaded', function() {
+        console.log("Initializing ACE editor...");
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python");
+        console.log("ACE editor initialized."); 
         var correctAnswer = document.getElementById('mcq-options').dataset.correctAnswer.trim();
 
         document.querySelectorAll('.mcq-option').forEach(function(option) {
@@ -169,40 +155,26 @@
             });
         });
     });
-
+    
     function sendPromptWithTranscript() {
-        // Get the prompt from the textarea
         var promptText = document.getElementById("prompt").value;
-        
-        // Get the content ID from the video frame
         var contentId = document.getElementById("videoFrame").dataset.contentId;
     
-        // Create a new XMLHttpRequest object
         var xhr = new XMLHttpRequest();
-    
-        // Configure the request
         xhr.open("POST", "/process_prompt", true);
         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     
-        // Define what happens on successful data submission
         xhr.onreadystatechange = function () {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 200) {
-                    // Parse the JSON response
                     var jsonResponse = JSON.parse(xhr.responseText);
                     var answerData = jsonResponse.Answer;
     
-                    // Update the answer HTML container with the structured content
-                    var answerHTML = '';
-                    if (answerData) {
-                        answerHTML += '<div><strong>Answer:</strong></div>';
-                        answerHTML += '<p>' + answerData + '</p>';
-                    } else {
-                        answerHTML = '<p>No answer available for this prompt.</p>';
-                    }
-    
+                    // Process and format the answer data
+                    var formattedAnswer = formatAnswerText(answerData);
+                    
                     // Display the structured answer
-                    document.getElementById("answer").innerHTML = answerHTML;
+                    document.getElementById("answer").innerHTML = formattedAnswer;
                     alert("Prompt submitted successfully.");
                 } else {
                     alert("Failed to submit prompt: " + xhr.responseText);
@@ -210,10 +182,49 @@
             }
         };
     
-        // Send the request with the prompt and content ID
         xhr.send("prompt=" + encodeURIComponent(promptText) + "&content_id=" + contentId);
     }
-        
+    
+    function sendPromptWithoutTranscript() {
+        var promptText = document.getElementById("prompt").value;
+    
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/process_web_prompt", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                console.log("Raw response:", xhr.responseText);
+                if (xhr.status === 200) {
+                    try {
+                        var jsonResponse = JSON.parse(xhr.responseText);
+                        console.log("Parsed response:", jsonResponse);
+                        var answerData = jsonResponse.Answer;
+    
+                        // Process and format the answer data
+                        var formattedAnswer = formatAnswerText(answerData);
+    
+                        document.getElementById("answer").innerHTML = formattedAnswer;
+                    } catch (e) {
+                        console.error("Error parsing response:", e);
+                        document.getElementById("answer").innerHTML = '<p>Error parsing response.</p>';
+                    }
+                } else {
+                    console.error("Failed to get answer. Status:", xhr.status, "Response:", xhr.responseText);
+                    document.getElementById("answer").innerHTML = '<p>Failed to get answer.</p>';
+                }
+            }
+        };
+    
+        xhr.send("prompt=" + encodeURIComponent(promptText));
+    }
+    
+    function formatAnswerText(text) {
+        // Remove Markdown characters like * _ # `
+        return text.replace(/[*_#`]/g, '');
+    }
+    
+    
     function sendPromptWithoutTranscript_original_by_NAVDEEP() {
         var promptText = document.getElementById("prompt").value;
     
@@ -264,44 +275,8 @@
         xhr.send("prompt=" + encodeURIComponent(promptText));
     }
 
-    function sendPromptWithoutTranscript() {
-    var promptText = document.getElementById("prompt").value;
+    
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/process_web_prompt", true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            console.log("Raw response:", xhr.responseText); // Log raw response
-            if (xhr.status === 200) {
-                try {
-                    var jsonResponse = JSON.parse(xhr.responseText);
-                    console.log("Parsed response:", jsonResponse); // Log parsed response
-                    var answerData = jsonResponse.Answer;
-
-                    var answerHTML = ''; // Process and format the answer data
-                    if (answerData) {
-                        answerHTML += '<div><strong>Answer:</strong></div>';
-                        answerHTML += '<p>' + answerData + '</p>';
-                    } else {
-                        answerHTML = '<p>No structured answer available for this prompt.</p>';
-                    }
-
-                    document.getElementById("answer").innerHTML = answerHTML;
-                } catch (e) {
-                    console.error("Error parsing response:", e);
-                    document.getElementById("answer").innerHTML = '<p>Error parsing response.</p>';
-                }
-            } else {
-                console.error("Failed to get answer. Status:", xhr.status, "Response:", xhr.responseText);
-                document.getElementById("answer").innerHTML = '<p>Failed to get answer.</p>';
-            }
-        }
-    };
-
-    xhr.send("prompt=" + encodeURIComponent(promptText));
-}
 
     
     function sendQuestionsToAPI() {
@@ -352,8 +327,9 @@
     }
 
     function sendCodingQuestionToAPI() {
-        var codingQuestion = document.getElementById("coding-question").textContent; // Assuming you have an element with id "coding-question" where the question is displayed
-        
+        var codingQuestion = document.getElementById("coding-question").textContent;
+        var code = ace.edit("editor").getValue(); // Get the code from ACE editor
+    
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "/get_coding_answer", true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -364,8 +340,12 @@
                     var jsonResponse = JSON.parse(xhr.responseText);
                     var answer = jsonResponse.answer;
     
-                    // Update the answer textarea with the response
-                    document.getElementById("api-coding-response").value = answer;
+                    // Remove backticks for better display
+                    var cleanAnswer = answer.replace(/```/g, '');
+    
+                    // Update the answer textarea with the cleaned response
+                    document.getElementById("api-coding-response").value = cleanAnswer;
+                    document.getElementById("coding-answer-container").style.display = "block";
                 } else {
                     alert("Failed to get answer: " + xhr.responseText);
                 }
@@ -373,17 +353,17 @@
         };
     
         var data = JSON.stringify({
-            "coding_question": codingQuestion
+            "coding_question": codingQuestion,
+            "code": code
         });
     
         xhr.send(data);
     }
     
     function sendCodingQuestionAndInputToAPI() {
-        var codingQuestion = document.getElementById("coding-question").textContent; // Assuming you have an element with id "coding-question" where the question is displayed
-        // var additionalInput = document.getElementById("additional-input").value; // Assuming you have an input element with id "additional-input" for additional user input
-        var additionalInput = document.getElementById("additional-input").textContent; // Assuming you have an input element with id "additional-input" for additional user input
-        
+        var codingQuestion = document.getElementById("coding-question").textContent;
+        var additionalInput = ace.edit("editor").getValue(); // Get the code from ACE editor
+    
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "/get_coding_hint", true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -394,8 +374,12 @@
                     var jsonResponse = JSON.parse(xhr.responseText);
                     var hint = jsonResponse.hint;
     
-                    // Update the answer textarea with the response
-                    document.getElementById("api-coding-response").value = hint;
+                    // Remove backticks for better display
+                    var cleanHint = hint.replace(/```/g, '');
+    
+                    // Update the answer textarea with the cleaned response
+                    document.getElementById("api-coding-response").value = cleanHint;
+                    document.getElementById("coding-answer-container").style.display = "block";
                 } else {
                     alert("Failed to get hint: " + xhr.responseText);
                 }
@@ -409,5 +393,44 @@
     
         xhr.send(data);
     }
+    
+    
+    function sendSubjectiveAnswerToAPI() {
+    // Get the subjective question and answer values
+    const subjectiveQuestion = document.getElementById('subjective-question').textContent;
+    const subjectiveAnswer = document.getElementById('subjective-answer').value;
+
+    // Create the data object to send
+    const data = {
+        question: subjectiveQuestion,
+        answer: subjectiveAnswer
+    };
+
+    // Send the data to the external API using fetch
+    fetch('/your_api_endpoint', { // Update this with your actual endpoint
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Handle errors for unsuccessful responses
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json(); // Parse the JSON from the response
+    })
+    .then(data => {
+        // Update the API response textarea with the API's response
+        document.getElementById('api-subjective-response').value = data.response || 'No response from API.';
+    })
+    .catch(error => {
+        // Handle any errors that occurred during the fetch operation
+        console.error('There was a problem with the fetch operation:', error);
+        document.getElementById('api-subjective-response').value = 'Failed to get response from API.';
+    });
+}
+
 </script>
 {% endblock %}

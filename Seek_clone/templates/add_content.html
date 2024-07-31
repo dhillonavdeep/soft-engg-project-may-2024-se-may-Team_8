@@ -26,6 +26,10 @@
     <input class="form-check-input" type="radio" name="content_type" id="programmingOption" value="programming">
     <label class="form-check-label" for="programmingOption">Programming Question</label>
   </div>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="radio" name="content_type" id="subjectiveOption" value="subjective">
+    <label class="form-check-label" for="subjectiveOption">Subjective Question</label>
+  </div>
 
   <div id="videoForm">
     <div class="col-sm-4">
@@ -98,6 +102,15 @@
     </div>
   </div>
 
+  <div id="subjectiveForm" style="display: none;">
+    <div class="col-sm-4">
+      <div class="form-outline">
+        <label class="form-label" for="subjectiveQuestion"><b>Subjective Question</b></label>
+        <textarea id="subjectiveQuestion" placeholder="Subjective Question" class="form-control" name="subjective_question"></textarea>
+      </div>
+    </div>
+  </div>
+
   <div class="pt-1 mb-4">
     <button class="btn btn-lg btn-primary mt-2" type="submit">Save the content details</button>
   </div>
@@ -108,15 +121,19 @@
     var videoOption = document.getElementById('videoOption');
     var assignmentOption = document.getElementById('assignmentOption');
     var programmingOption = document.getElementById('programmingOption');
+    var subjectiveOption = document.getElementById('subjectiveOption');
+
     var videoForm = document.getElementById('videoForm');
     var assignmentForm = document.getElementById('assignmentForm');
     var programmingForm = document.getElementById('programmingForm');
+    var subjectiveForm = document.getElementById('subjectiveForm');
 
     videoOption.addEventListener('change', function () {
       if (videoOption.checked) {
         videoForm.style.display = 'block';
         assignmentForm.style.display = 'none';
         programmingForm.style.display = 'none';
+        subjectiveForm.style.display = 'none';
       }
     });
 
@@ -125,6 +142,7 @@
         videoForm.style.display = 'none';
         assignmentForm.style.display = 'block';
         programmingForm.style.display = 'none';
+        subjectiveForm.style.display = 'none';
       }
     });
 
@@ -133,6 +151,16 @@
         videoForm.style.display = 'none';
         assignmentForm.style.display = 'none';
         programmingForm.style.display = 'block';
+        subjectiveForm.style.display = 'none';
+      }
+    });
+
+    subjectiveOption.addEventListener('change', function () {
+      if (subjectiveOption.checked) {
+        videoForm.style.display = 'none';
+        assignmentForm.style.display = 'none';
+        programmingForm.style.display = 'none';
+        subjectiveForm.style.display = 'block';
       }
     });
   });
