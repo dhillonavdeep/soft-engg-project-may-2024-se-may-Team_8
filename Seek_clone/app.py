@@ -914,6 +914,64 @@ def get_coding_hint():
 
 
 
+from flask import Flask, request, jsonify
+import io
+import contextlib
+
+
+def run_code(user_code, test_input, expected_output):
+    """
+    Executes the user code and tests it against the given input and expected output.
+    """
+    # Create a new local namespace for the code execution
+    local_namespace = {}
+    
+    # Define a function to capture the output
+    output = io.StringIO()
+    with contextlib.redirect_stdout(output):
+        try:
+            # Execute the user's code
+            exec(user_code, {}, local_namespace)
+            
+            # Retrieve the function name
+            function_name = next(iter(local_namespace.keys()))
+            
+            # Call the user's function with the test input
+            result = local_namespace[function_name](*test_input)
+            
+            # Check if the result matches the expected output
+            if result == expected_output:
+                return True, "Test passed!"
+            else:
+                return False, f"Test failed! Expected {expected_output}, but got {result}."
+        except Exception as e:
+            return False, f"Error executing code: {str(e)}"
+
+@app.route('/check_code', methods=['POST'])
+def check_code():
+    """
+    Endpoint to receive user code, test input, and expected output,
+    and check if the code produces the correct result.
+    """
+    try:
+        data = request.get_json()
+        user_code = data['code']
+        test_input = data['input']
+        expected_output = data['expected_output']
+        
+        # Check the user code
+        is_correct, message = run_code(user_code, test_input, expected_output)
+        
+        return jsonify({
+            'is_correct': is_correct,
+            'message': message
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'is_correct': False,
+            'message': str(e)
+        }), 500
+
 
 
 
