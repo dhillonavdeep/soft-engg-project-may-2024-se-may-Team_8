@@ -117,10 +117,21 @@
             <div class="content-container">
                 <h5>Subjective Question:</h5>
                 <p id="subjective-question">{{ selected_subjective.subjective_question }}</p>
-                <button type="button" class="btn btn-primary mt-3" onclick="sendSubjectiveQuestionToAPI()">Get Answer</button>
-                <div id="subjective-answer-container" class="mt-3" style="display: none;">
+                <button type="button" class="btn btn-primary mt-3" onclick="sendSubjectiveQuestionToAPI()">Check Answer</button>
+                <div id="subjective-answer-container" class="mt-3">
                     <h5>Answer:</h5>
-                    <textarea id="subjective-answer" class="form-control" rows="3" readonly></textarea>
+                    <textarea id="subjective-answer" class="form-control" rows="7"></textarea>
+                </div>
+                <!-- Feedback container is hidden initially -->
+                <div id="feedback-container" class="mt-3">
+                    <div class="feedback-box">
+                        <h5>Cohesiveness Feedback:</h5>
+                        <p id="cohesiveness-feedback"></p>
+                    </div>
+                    <div class="feedback-box">
+                        <h5>Grammar Feedback:</h5>
+                        <p id="grammar-feedback"></p>
+                    </div>
                 </div>
             </div>
         {% else %}
@@ -278,11 +289,7 @@
     
         xhr.send("prompt=" + encodeURIComponent(promptText));
     }
-
-    
-
-
-    
+  
     function sendQuestionsToAPI() {
         // Get the selected MCQ data
         var selectedMCQ = {
@@ -432,42 +439,43 @@
     }
     
     
-    function sendSubjectiveAnswerToAPI() {
-    // Get the subjective question and answer values
-    const subjectiveQuestion = document.getElementById('subjective-question').textContent;
-    const subjectiveAnswer = document.getElementById('subjective-answer').value;
+    function sendSubjectiveQuestionToAPI() {
+            const subjectiveQuestion = document.getElementById('subjective-question').textContent;
+            const subjectiveAnswer = document.getElementById('subjective-answer').value;
 
-    // Create the data object to send
-    const data = {
-        question: subjectiveQuestion,
-        answer: subjectiveAnswer
-    };
+            const data = {
+                question: subjectiveQuestion,
+                answer: subjectiveAnswer
+            };
 
-    // Send the data to the external API using fetch
-    fetch('/your_api_endpoint', { // Update this with your actual endpoint
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            // Handle errors for unsuccessful responses
-            throw new Error('Network response was not ok ' + response.statusText);
+            fetch('/evaluate_subjective', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.response) {
+                    document.getElementById('cohesiveness-feedback').textContent = data.response.cohesiveness_feedback || 'No cohesiveness feedback.';
+                    document.getElementById('grammar-feedback').textContent = data.response.grammar_feedback || 'No grammar feedback.';
+                    // Show the feedback container
+                    document.getElementById('feedback-container').style.display = 'block';
+                } else {
+                    document.getElementById('feedback-container').textContent = 'No response from API.';
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                document.getElementById('feedback-container').textContent = 'Failed to get response from API.';
+            });
         }
-        return response.json(); // Parse the JSON from the response
-    })
-    .then(data => {
-        // Update the API response textarea with the API's response
-        document.getElementById('api-subjective-response').value = data.response || 'No response from API.';
-    })
-    .catch(error => {
-        // Handle any errors that occurred during the fetch operation
-        console.error('There was a problem with the fetch operation:', error);
-        document.getElementById('api-subjective-response').value = 'Failed to get response from API.';
-    });
-}
 
 
 </script>

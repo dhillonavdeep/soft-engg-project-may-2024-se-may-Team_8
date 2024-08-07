@@ -734,27 +734,6 @@ def course_page(course_id):
     return redirect("/user_login")
 
 
-#--------------------------subjective api--------------------------------
-@app.route("/evaluate_subjective", methods=["POST"])
-def evaluate_subjective():
-    if session.get("user_logged_in"):
-        data = request.get_json()
-        subjective_question_id = data.get("subjective_question_id")
-        response_text = data.get("response")
-
-        # Call your external API for evaluation here
-        """external_api_url = "https://example.com/evaluate_subjective"
-        payload = {
-            "question_id": subjective_question_id,
-            "response": response_text
-        }
-
-        response = requests.post(external_api_url, json=payload)
-        if response.status_code == 200:
-            return jsonify(response.json()), 200
-        else:
-            return jsonify({"error": "Failed to get response from the external API"}), response.status_code"""
-    return redirect("/user_login")
 
 #--------------------------delete item------------------------------------        
 @app.route("/dashboard/delete_prompt_item/<int:prompt_id>", methods=["POST"])
@@ -765,10 +744,6 @@ def delete_prompt_item(prompt_id):
     flash("prompt item deleted successfully.", "success")
     return redirect("/dashboard")
 
-
-
-
-
 #--------------------------------------------------USER PROFILE--------------------------------------------------
 @app.route("/user_profile", methods=["GET", "POST"])
 def user_profile():
@@ -777,9 +752,6 @@ def user_profile():
         user_prof=Users.query.filter_by(user_username=usrname).first()
         return render_template("user_profile.html", user_det=user_prof)
     return redirect("/user_login")
-
-
-
 
 #----------------------------------------prompt-------------------------------------------------------------    
 @app.route('/prompt', methods=['GET'])
@@ -872,7 +844,7 @@ def process_coding_hint(coding_question, additional_input):
         },
         {
             'role':'user',
-            'content': " Give hint to solve the question, based on the question, dont provide the exact code,but provide insightss whats can be dont for the question, steps ,functions variables to make and much more ,the code writen by the user till now is : "+ additional_input,
+            'content': " Give hint to solve the question, based on the question, dont provide the exact code,but provide insightss whats can be done for the question, steps ,functions, variables to make and whatever necessary ,the code writen by the user till now is : "+ additional_input,
         }
     ])
     answer = response['message']['content']
@@ -973,8 +945,75 @@ def check_code():
         }), 500
 
 
+#--------------------------subjective api--------------------------------
+# def process_feedback(question, answer, feedback_type):
+#     if feedback_type == 'cohesiveness':
+#         prompt = f"This was the question: {question} Now we have to give feedback to the student about the cohesiveness of the answer. Does the answer have a proper flow or not? Is the answer relevant to the question? If not, give him proper feedback about these points. Your feedback should not exceed 100 words. This is the answer written by student: {answer}"
+#     else:
+#         prompt = f"This was the question: {question} This is the answer written by student: {answer} Also give him feedback about any grammatical mistakes that the answer may have. Your feedback should not exceed 100 words."
 
+#     response = ollama.chat(model='gemma:2b', messages=[
+#         {'role': 'user', 'content': prompt}
+#     ])
+#     feedback = response['message']['content']
+#     feedback = feedback.replace('```python', '').replace('```', '').replace('**', '').strip()
+#     return feedback
 
+# def check_plagiarism_with_gemma(answer, sources):
+#     highest_score = 0
+#     for source in sources:
+#         response = ollama.chat(model='gemma:2b', messages=[
+#             {
+#                 'role': 'user',
+#                 'content': f"Compare the following answer to the source and provide a similarity score between 0 and 100. Answer: {answer} Source: {source}"
+#             }
+#         ])
+#         similarity_score = int(response['message']['content'].strip())
+#         highest_score = max(highest_score, similarity_score)
+#     return highest_score
+
+def process_feedback(question, answer, feedback_type):
+    try:
+        if feedback_type == 'cohesiveness':
+            prompt = f"This was the question: {question} Now we have to give feedback to the student about the cohesiveness of the answer. Does the answer have a proper flow or not? Is the answer relevant to the question? If not, give him proper feedback about these points. Your feedback should not exceed 100 words. This is the answer written by student: {answer}"
+        else:
+            prompt = f"This was the question: {question} This is the answer written by student: {answer} list any grammatical mistakes that the answer may have. How those mistakes can be solved, keep the response short."
+
+        response = ollama.chat(model='gemma:2b', messages=[
+            {'role': 'user', 'content': prompt}
+        ])
+        feedback = response['message']['content']
+        feedback = feedback.replace('```python', '').replace('```', '').replace('**', '').strip()
+        return feedback
+    except Exception as e:
+        logging.error(f"Error in process_feedback: {e}")
+        return None
+
+@app.route("/evaluate_subjective", methods=["POST"])
+def evaluate_subjective():
+    if session.get("user_logged_in"):
+        try:
+            data = request.get_json()
+            question = data.get("question")
+            answer = data.get("answer")
+
+            cohesiveness_feedback = process_feedback(question, answer, 'cohesiveness')
+            grammar_feedback = process_feedback(question, answer, 'grammar')
+
+            if cohesiveness_feedback is None or grammar_feedback is None:
+                raise ValueError("Feedback processing failed.")
+            
+            response = {
+                'cohesiveness_feedback': cohesiveness_feedback,
+                'grammar_feedback': grammar_feedback
+            }
+            return jsonify({'response': response}), 200
+
+        except Exception as e:
+            logging.error(f"Error in evaluate_subjective: {e}")
+            return jsonify({'error': str(e)}), 500
+    else:
+        return redirect("/user_login")
 
 
 
