@@ -19,11 +19,6 @@ from flask_security import UserMixin, RoleMixin,Security,current_user,SQLAlchemy
 import ollama
 
 
-# Initialize the Hugging Face pipeline for question answering
-# ==============================================
-# qa_pipeline = pipeline("question-answering", model="distilbert-base-uncased-distilled-squad")
-# ==============================================
-
 curr_dir=os.path.abspath(os.path.dirname(__file__))
 
 #Creating a Flask instance
@@ -889,6 +884,7 @@ def get_coding_hint():
 from flask import Flask, request, jsonify
 import io
 import contextlib
+import logging
 
 
 def run_code(user_code, test_input, expected_output):
@@ -950,7 +946,7 @@ def check_code():
 #     if feedback_type == 'cohesiveness':
 #         prompt = f"This was the question: {question} Now we have to give feedback to the student about the cohesiveness of the answer. Does the answer have a proper flow or not? Is the answer relevant to the question? If not, give him proper feedback about these points. Your feedback should not exceed 100 words. This is the answer written by student: {answer}"
 #     else:
-#         prompt = f"This was the question: {question} This is the answer written by student: {answer} Also give him feedback about any grammatical mistakes that the answer may have. Your feedback should not exceed 100 words."
+#         prompt = f"This was the question: {question} This is the answer written by student: {answer} Give him feedback about any grammatical mistakes that the answer may have. Your feedback should not exceed 100 words."
 
 #     response = ollama.chat(model='gemma:2b', messages=[
 #         {'role': 'user', 'content': prompt}
@@ -975,19 +971,22 @@ def check_code():
 def process_feedback(question, answer, feedback_type):
     try:
         if feedback_type == 'cohesiveness':
-            prompt = f"This was the question: {question} Now we have to give feedback to the student about the cohesiveness of the answer. Does the answer have a proper flow or not? Is the answer relevant to the question? If not, give him proper feedback about these points. Your feedback should not exceed 100 words. This is the answer written by student: {answer}"
+            prompt = f"This was the question: {question} Now we have to give feedback to the student about the cohesiveness of the answer. Does the answer have a proper flow or not? Is the answer relevant to the question? If not, give him proper feedback about these points. Your feedback should not exceed 100 words. Your feedback should be in form of bullet points. Include a '\n' after every bullet point. This is the answer written by student: {answer}"
+        elif feedback_type == 'grammar':
+            prompt = f'An assignment has this question: "{question}" This is the answer written by student: {answer} Knowing the the question and answer, list any grammatical mistakes that the answer may have. Also explain how those mistakes can be rectified, keep the response short. Write the answer in bullet points. Include a "\n" after every bullet point.'
         else:
-            prompt = f"This was the question: {question} This is the answer written by student: {answer} list any grammatical mistakes that the answer may have. How those mistakes can be solved, keep the response short."
+            prompt = f'An assignment has this question: "{question}" This is the answer written by student: {answer} Knowing the the question and answer, give me a percentage score which tells how much the content is AI generated. Give your answer in the following format: "The given content seems to be <percentage>% AI generated."'
 
         response = ollama.chat(model='gemma:2b', messages=[
             {'role': 'user', 'content': prompt}
         ])
         feedback = response['message']['content']
-        feedback = feedback.replace('```python', '').replace('```', '').replace('**', '').strip()
+        feedback = feedback.replace('```python', '').replace('```', '').replace('**', '')
+        print(f"Answer by OLLAMA for {feedback_type} is:\n{feedback}")
         return feedback
     except Exception as e:
-        logging.error(f"Error in process_feedback: {e}")
-        return None
+        feedback = f"The answer could not be processed because of technical issue {e}"
+        return feedback
 
 @app.route("/evaluate_subjective", methods=["POST"])
 def evaluate_subjective():
@@ -999,13 +998,15 @@ def evaluate_subjective():
 
             cohesiveness_feedback = process_feedback(question, answer, 'cohesiveness')
             grammar_feedback = process_feedback(question, answer, 'grammar')
+            plagisrism_feedback = process_feedback(question, answer, 'plagiarism')
 
             if cohesiveness_feedback is None or grammar_feedback is None:
                 raise ValueError("Feedback processing failed.")
             
             response = {
                 'cohesiveness_feedback': cohesiveness_feedback,
-                'grammar_feedback': grammar_feedback
+                'grammar_feedback': grammar_feedback,
+                'plagisrism_feedback': plagisrism_feedback
             }
             return jsonify({'response': response}), 200
 

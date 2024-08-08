@@ -132,6 +132,10 @@
                         <h5>Grammar Feedback:</h5>
                         <p id="grammar-feedback"></p>
                     </div>
+                    <div class="feedback-box">
+                        <h5>Plagiarism check:</h5>
+                        <p id="plagiarism-feedback"></p>
+                    </div>
                 </div>
             </div>
         {% else %}
@@ -463,8 +467,15 @@
             })
             .then(data => {
                 if (data.response) {
-                    document.getElementById('cohesiveness-feedback').textContent = data.response.cohesiveness_feedback || 'No cohesiveness feedback.';
-                    document.getElementById('grammar-feedback').textContent = data.response.grammar_feedback || 'No grammar feedback.';
+                    result_1 = data.response.cohesiveness_feedback.replace(/\n/g, '<br>');
+                    result_1 = formatAnswerText(result_1);
+                    document.getElementById('cohesiveness-feedback').innerHTML = result_1 || 'No cohesiveness feedback.';
+                    result_2 = data.response.grammar_feedback.replace(/\n/g, '<br>');
+                    result_2 = formatAnswerText(result_2)
+                    document.getElementById('grammar-feedback').innerHTML = result_2 || 'No grammar feedback.';
+                    result_3 = data.response.plagisrism_feedback.replace(/\n/g, '<br>');
+                    result_3 = formatAnswerText(result_3)
+                    document.getElementById('plagiarism-feedback').innerHTML = result_3 || 'No plagiarism feedback.';
                     // Show the feedback container
                     document.getElementById('feedback-container').style.display = 'block';
                 } else {
