@@ -941,33 +941,6 @@ def check_code():
         }), 500
 
 
-#--------------------------subjective api--------------------------------
-# def process_feedback(question, answer, feedback_type):
-#     if feedback_type == 'cohesiveness':
-#         prompt = f"This was the question: {question} Now we have to give feedback to the student about the cohesiveness of the answer. Does the answer have a proper flow or not? Is the answer relevant to the question? If not, give him proper feedback about these points. Your feedback should not exceed 100 words. This is the answer written by student: {answer}"
-#     else:
-#         prompt = f"This was the question: {question} This is the answer written by student: {answer} Give him feedback about any grammatical mistakes that the answer may have. Your feedback should not exceed 100 words."
-
-#     response = ollama.chat(model='gemma:2b', messages=[
-#         {'role': 'user', 'content': prompt}
-#     ])
-#     feedback = response['message']['content']
-#     feedback = feedback.replace('```python', '').replace('```', '').replace('**', '').strip()
-#     return feedback
-
-# def check_plagiarism_with_gemma(answer, sources):
-#     highest_score = 0
-#     for source in sources:
-#         response = ollama.chat(model='gemma:2b', messages=[
-#             {
-#                 'role': 'user',
-#                 'content': f"Compare the following answer to the source and provide a similarity score between 0 and 100. Answer: {answer} Source: {source}"
-#             }
-#         ])
-#         similarity_score = int(response['message']['content'].strip())
-#         highest_score = max(highest_score, similarity_score)
-#     return highest_score
-
 def process_feedback(question, answer, feedback_type):
     try:
         if feedback_type == 'cohesiveness':
@@ -975,7 +948,7 @@ def process_feedback(question, answer, feedback_type):
         elif feedback_type == 'grammar':
             prompt = f'An assignment has this question: "{question}" This is the answer written by student: {answer} Knowing the the question and answer, list any grammatical mistakes that the answer may have. Also explain how those mistakes can be rectified, keep the response short. Write the answer in bullet points. Include a "\n" after every bullet point.'
         else:
-            prompt = f'An assignment has this question: "{question}" This is the answer written by student: {answer} Knowing the the question and answer, give me a percentage score which tells how much the content is AI generated. Give your answer in the following format: "The given content seems to be <percentage>% AI generated."'
+            prompt = f'An assignment has this question: "{question}" This is the answer written by student: {answer} Knowing the question and the answer, give me a percentage score which tells how much the content is AI generated. Give your answer in the following format: "The given content seems to be <percentage>% AI generated."'
 
         response = ollama.chat(model='gemma:2b', messages=[
             {'role': 'user', 'content': prompt}
@@ -1016,9 +989,55 @@ def evaluate_subjective():
     else:
         return redirect("/user_login")
 
+@app.route("/dashboard/course/1/GA1", methods=["GET","POST"])
+def show_GA1():
+    if request.method=="POST":
+        pass
+    return render_template("GA_1.html")
 
+@app.route("/evaluate_GA", methods=["POST"])
+def evaluate_GA():
+    if request.method=='POST':
+        data = request.get_json()
+        # print(f"DATA=\n\n***********\n")
+        assert isinstance(data, dict),  "WARNING! DATA SHOULD be A DICT"
 
+        prompt = '''An assignment was given to a student. The topics for the assignment are: Logarithms and Quadratic equations. Here I am giving you the questions that were given in the assignment, the answer that was marked by the student, and the actual answer of that question. You have to analyse the information and suggest the learning path for that student. The feedback should include: 
+        1. In which topics he needs to focus more? 
+        2. In which topic he is strong?
+        3. Suggest atleast 2 questions based on the topic in which the student seems weak.
 
+        Here is the required information:
+        {'''
+
+        for (k,v) in data.items():
+            text = f'''
+Question asked: {k}
+Answer given by student: {v[0]} 
+Actual answer: {v[1]}, \n\n'''
+            prompt+=text
+        prompt+="}"
+        text = '''Your answer should be in the following format:
+        The topics in which the student seems weak is/are: <relevant info here>.
+        The topics in which the student seems strong is/are: <relevant info here>.
+        Here are some additional questions for student to practice: <numerical questions here>'''
+        prompt+=text
+        # print("GENERATED PROMPT = \n*********\n",prompt)
+        # return jsonify({'Answer': "hello \n world**#"})
+        try:
+            # Generate response using model
+            response = ollama.chat(model='gemma:2b', messages=[
+                {'role': 'user', 'content': prompt}
+            ])
+            answer = response['message']['content']
+            print(f"Generated answer: {answer}")
+
+            # Return the generated response
+            return jsonify({'Answer': answer}), 200
+        except KeyError as e:
+            return jsonify({'error': f"Missing form data: {e.args[0]}"}), 400
+        except Exception as e:
+            return jsonify({'error': f"An error occurred: {str(e)}"}), 500
 
 #----------------------------course DETAILS-------------------------------------------------
 @app.route("/course_details/<cat_id>", methods=["GET"])
@@ -1030,10 +1049,6 @@ def content_course(cat_id):
             return render_template("course_details.html", course=course_det, contents=content_det)
         return redirect("/")
 
-
-
-
-
 #-----------------------content DETAILS---------------------------------
 @app.route("/content/<content_id>", methods=["GET"])
 def content_details(content_id):
@@ -1042,10 +1057,7 @@ def content_details(content_id):
             content_det=contents.query.filter_by(content_id=content_id).first()
             return render_template("content_details.html", content=content_det)
         return redirect("/")
-    
-
-    
-
+     
 #Running the app
 if __name__=="__main__":
     app.debug=True

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user_content.css') }}">
+</head>
+<body style="background-color: #ffffffea;">
+<div class="container">
+<div class="content-container">
+        <h1 class="welcome-heading">Graded Assignment 1</h1>
+    <form id="assignmentForm">
+        <!-- Logarithm Questions -->
+        <div class="mcq-option">
+            <p>What is the log of 8 to the base 2?</p>
+            <div class="options">
+                <input type="radio" id="q1a" name="q1" value="1">
+                <label for="q1a">1</label><br>
+                <input type="radio" id="q1b" name="q1" value="2">
+                <label for="q1b">2</label><br>
+                <input type="radio" id="q1c" name="q1" value="3">
+                <label for="q1c">3</label><br>
+                <input type="radio" id="q1d" name="q1" value="4">
+                <label for="q1d">4</label>
+            </div>
+        </div>
+        <div class="mcq-option">
+            <p>What is the log of 100 to the base 10?</p>
+            <div class="options">
+                <input type="radio" id="q2a" name="q2" value="1">
+                <label for="q2a">1</label><br>
+                <input type="radio" id="q2b" name="q2" value="2">
+                <label for="q2b">2</label><br>
+                <input type="radio" id="q2c" name="q2" value="3">
+                <label for="q2c">3</label><br>
+                <input type="radio" id="q2d" name="q2" value="4">
+                <label for="q2d">4</label>
+            </div>
+        </div>
+        <div class="mcq-option">
+            <p>What is the log of 1 to the base 10?</p>
+            <div class="options">
+                <input type="radio" id="q3a" name="q3" value="0">
+                <label for="q3a">0</label><br>
+                <input type="radio" id="q3b" name="q3" value="1">
+                <label for="q3b">1</label><br>
+                <input type="radio" id="q3c" name="q3" value="2">
+                <label for="q3c">2</label><br>
+                <input type="radio" id="q3d" name="q3" value="3">
+                <label for="q3d">3</label>
+            </div>
+        </div>
+        <div class="mcq-option">
+            <p>What is the log of 16 to the base 2?</p>
+            <div class="options">
+                <input type="radio" id="q4a" name="q4" value="2">
+                <label for="q4a">2</label><br>
+                <input type="radio" id="q4b" name="q4" value="3">
+                <label for="q4b">3</label><br>
+                <input type="radio" id="q4c" name="q4" value="4">
+                <label for="q4c">4</label><br>
+                <input type="radio" id="q4d" name="q4" value="5">
+                <label for="q4d">5</label>
+            </div>
+        </div>
+        <!-- Polynomial Questions -->
+        <div class="mcq-option">
+            <p>What is the solution to the equation x^2 - 4 = 0?</p>
+            <div class="options">
+                <input type="radio" id="q5a" name="q5" value="1">
+                <label for="q5a">1</label><br>
+                <input type="radio" id="q5b" name="q5" value="2">
+                <label for="q5b">2</label><br>
+                <input type="radio" id="q5c" name="q5" value="3">
+                <label for="q5c">3</label><br>
+                <input type="radio" id="q5d" name="q5" value="4">
+                <label for="q5d">4</label>
+            </div>
+        </div>
+        <div class="mcq-option">
+            <p>What is the solution to the equation x^2 - 9 = 0?</p>
+            <div class="options">
+                <input type="radio" id="q6a" name="q6" value="1">
+                <label for="q6a">1</label><br>
+                <input type="radio" id="q6b" name="q6" value="2">
+                <label for="q6b">2</label><br>
+                <input type="radio" id="q6c" name="q6" value="3">
+                <label for="q6c">3</label><br>
+                <input type="radio" id="q6d" name="q6" value="4">
+                <label for="q6d">4</label>
+            </div>
+        </div>
+        <!-- <div class="mcq-option">
+            <p>7. What is the solution to the equation x^2 - 1 = 0?</p>
+            <div class="options">
+                <input type="radio" id="q7a" name="q7" value="1">
+                <label for="q7a">1</label><br>
+                <input type="radio" id="q7b" name="q7" value="2">
+                <label for="q7b">2</label><br>
+                <input type="radio" id="q7c" name="q7" value="3">
+                <label for="q7c">3</label><br>
+                <input type="radio" id="q7d" name="q7" value="4">
+                <label for="q7d">4</label>
+            </div>
+        </div>
+        <div class="mcq-option">
+            <p>8. What is the solution to the equation x^2 - 25 = 0?</p>
+            <div class="options">
+                <input type="radio" id="q8a" name="q8" value="1">
+                <label for="q8a">1</label><br>
+                <input type="radio" id="q8b" name="q8" value="2">
+                <label for="q8b">2</label><br>
+                <input type="radio" id="q8c" name="q8" value="3">
+                <label for="q8c">3</label><br>
+                <input type="radio" id="q8d" name="q8" value="4">
+                <label for="q8d">4</label>
+            </div>
+        </div>
+        <div class="mcq-option">
+            <p>9. What is the solution to the equation x^2 - 36 = 0?</p>
+            <div class="options">
+                <input type="radio" id="q9a" name="q9" value="1">
+                <label for="q9a">1</label><br>
+                <input type="radio" id="q9b" name="q9" value="2">
+                <label for="q9b">2</label><br>
+                <input type="radio" id="q9c" name="q9" value="3">
+                <label for="q9c">3</label><br>
+                <input type="radio" id="q9d" name="q9" value="4">
+                <label for="q9d">4</label>
+            </div>
+        </div>
+        <div class="mcq-option">
+            <p>10. What is the solution to the equation x^2 - 49 = 0?</p>
+            <div class="options">
+                <input type="radio" id="q10a" name="q10" value="1">
+                <label for="q10a">1</label><br>
+                <input type="radio" id="q10b" name="q10" value="2">
+                <label for="q10b">2</label><br>
+                <input type="radio" id="q10c" name="q10" value="3">
+                <label for="q10c">3</label><br>
+                <input type="radio" id="q10d" name="q10" value="4">
+                <label for="q10d">4</label>
+            </div>
+        </div> -->
+        <button type="button" class="btn btn-primary" onclick="submitAssignment()">Submit and get feedback</button>
+    </form>
+    <div id="resultBox" class="mt-3"></div>
+</div>
+</div>
+    <script>
+        function formatAnswerText(text) {
+        // Remove Markdown characters like * _ # `
+        return text.replace(/[*_#`]/g, '');
+    }
+        const questions = {
+                "What is the log of 8 to the base 2?": 3,
+                "What is the log of 100 to the base 10?": 2,
+                "What is the log of 1 to the base 10?": 0,
+                "What is the log of 16 to the base 2?": 4,
+                "What is the solution to the equation x^2 - 4 = 0?": 2,
+                "What is the solution to the equation x^2 - 9 = 0?": 3,
+                "What is the solution to the equation x^2 - 1 = 0?": 1,
+                "What is the solution to the equation x^2 - 25 = 0?": 5,
+                "What is the solution to the equation x^2 - 36 = 0?": 6,
+                "What is the solution to the equation x^2 - 49 = 0?": 7,
+            };
+
+        function submitAssignment() {
+            document.getElementById('resultBox').innerHTML = "Please wait while we are fetching the feedback"
+            let results = {};
+
+            // Iterate over all questions
+            document.querySelectorAll('.mcq-option').forEach(questionElement => {
+                const questionText = questionElement.querySelector('p').textContent.trim();
+                const correctAnswer = questions[questionText];
+
+                const selectedAnswer = questionElement.querySelector('input[type="radio"]:checked');
+
+                if (selectedAnswer) {
+                    results[questionText] = [parseInt(selectedAnswer.value), correctAnswer];
+                } else {
+                    results[questionText] = [null, correctAnswer]; // No answer selected
+                }
+            });
+
+            const jsonData = JSON.stringify(results);
+            console.log(jsonData);
+            // Send jsonData to backend as needed
+            fetch('/evaluate_GA', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: jsonData
+            })
+            .then(response => response.json())
+            .then(data => {
+                result_1 = data.Answer.replace(/\n/g, '<br>');
+                result_1 = formatAnswerText(result_1);
+                console.log('Success:', result_1);
+                // Display the result in the text box
+                // document.getElementById('resultBox').value = JSON.stringify(data, null, 2);
+                document.getElementById('resultBox').innerHTML = result_1
+            })
+            .catch((error) => {
+                // console.error('Error:', error);
+                document.getElementById('resultBox').innerHTML = 'Error occurred while processing the request.';
+            });
+        }
+    </script>
+</body>
+</html>
