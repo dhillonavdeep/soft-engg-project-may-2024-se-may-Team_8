@@ -43,13 +43,14 @@ app.app_context().push()
 
 #___________________________models___________________________________________
 class Admin(db.Model):
-    __tablename__="admin"
-    admin_id=db.Column(db.Integer, primary_key=True, nullable=False)
-    ad_fname=db.Column(db.String(30), nullable=False)
-    ad_lname=db.Column(db.String(30))
-    ad_email=db.Column(db.String(30), nullable=False)
-    ad_username=db.Column(db.String(20), nullable=False, unique=True)
-    ad_pwd=db.Column(db.String(20), nullable=False)
+    __tablename__ = 'admin'
+    admin_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    first_name = db.Column(db.String(30), nullable=False)
+    last_name = db.Column(db.String(30))
+    email = db.Column(db.String(30), nullable=False, index=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
+    password = db.Column(db.String(60), nullable=False)  # Increased length for better securit
+
 
 
 class contents(db.Model):
