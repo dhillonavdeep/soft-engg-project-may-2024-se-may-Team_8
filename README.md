@@ -2,7 +2,8 @@
 
 1. This project was created as part of Software engineering course in IITM BS program
 2. It tries to integrate the power of genAI into an edtech platform (the IITM seek portal)
-3. Python's OLLAMA library was used for this purpose. The model used is: "gemma:2b"
+3. Python's OLLAMA library was used for this purpose. The model used is: "gemma:2b"]
+4. Demo video of this app can be accessed at: [Demo Link](https://drive.google.com/file/d/1jhHsTHu-851m1LFBYOhKns06zbnpc5lZ/view?usp=drive_link)
 
 # General steps to run the project code in your local system
 
